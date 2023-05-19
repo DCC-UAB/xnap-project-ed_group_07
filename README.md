@@ -1,9 +1,8 @@
 [![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-718a45dd9cf7e7f842a935f5ebbe5719a5e09af4491e668f4dbf3b35d5cca122.svg)](https://classroom.github.com/online_ide?assignment_repo_id=11122297&assignment_repo_type=AssignmentRepo)
 # XNAP-TRANSLATION MACHINE GROUP
-Our project....
-
 Write here a short summary about your project. The text must include a short introduction and the targeted goals
-Aquest projecte està enfocat a la creació de una màquina automàtica per a la traducció de models en diferents llengues.
+
+Aquest projecte està enfocat a la creació d'un model de màquina automàtica per a la traducció de diferents llengues com seria passar de l'espanyol o l'italia a l'anglés. El principal objectiu d'aquest treball es entendre el funcionament i l'estructura interna d'aquest model de màquina automètica.
 
 ## Code structure
 You must create as many folders as you consider. You can use the proposed structure or replace it by the one in the base code that you use as starting point. Do not forget to add Markdown files as needed to explain well the code and how to use it.
