@@ -8,14 +8,14 @@ import numpy as np
 import _pickle as pickle
 
 batch_size = 128  # Batch size for training.
-epochs = 2  # Number of epochs to train for.
+epochs = 10  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
 num_samples = 30000 #145437  # Number of samples to train on.
 # Path to the data txt file on disk.
-data_path = 'fra.txt' # to replace by the actual dataset name
+data_path = './cat-eng/cat.txt' # to replace by the actual dataset name
 encoder_path='encoder_modelPredTranslation.h5'
 decoder_path='decoder_modelPredTranslation.h5'
-LOG_PATH="log"
+LOG_PATH='/home/alumne/projecte/xnap-project-ed_group_07/log' #aixo quan es en remot
 
 
 def prepareData(data_path):
@@ -33,7 +33,7 @@ def extractChar(data_path,exchangeLanguage=False):
     lines = open(data_path).read().split('\n')
     print(str(len(lines) - 1))
     if (exchangeLanguage==False):
-        for line in lines[: min(num_samples, len(lines) - 1)]:
+        for line in lines[: min(num_samples, len(lines) - 1)]: #change
             input_text, target_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -50,7 +50,7 @@ def extractChar(data_path,exchangeLanguage=False):
 
     else:
         for line in lines[: min(num_samples, len(lines) - 1)]:
-            target_text , input_text = line.split('\t')
+            target_text , input_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
             target_texts.append(target_text)
@@ -142,7 +142,7 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data):
 # We load tensorboad
 # We train the model
-    LOG_PATH="/output/log"
+    LOG_PATH="/home/alumne/projecte/xnap-project-ed_group_07/log"
         
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
