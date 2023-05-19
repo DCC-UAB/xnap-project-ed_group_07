@@ -1,5 +1,5 @@
 from __future__ import print_function
-
+import keras 
 from keras.models import Model
 from keras.layers import Input, LSTM, Dense, GRU
 from keras.models import load_model
@@ -8,9 +8,9 @@ import numpy as np
 import _pickle as pickle
 
 batch_size = 128  # Batch size for training.
-epochs = 20  # Number of epochs to train for.
+epochs = 2  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
-num_samples = 145437  # Number of samples to train on.
+num_samples = 30000 #145437  # Number of samples to train on.
 # Path to the data txt file on disk.
 data_path = 'fra.txt' # to replace by the actual dataset name
 encoder_path='encoder_modelPredTranslation.h5'
@@ -34,7 +34,7 @@ def extractChar(data_path,exchangeLanguage=False):
     print(str(len(lines) - 1))
     if (exchangeLanguage==False):
         for line in lines[: min(num_samples, len(lines) - 1)]:
-            input_text, target_text = line.split('\t')
+            input_text, target_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
             target_texts.append(target_text)
@@ -142,16 +142,16 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data):
 # We load tensorboad
 # We train the model
-LOG_PATH="/output/log"
-    
+    LOG_PATH="/output/log"
+        
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
     model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
-              batch_size=batch_size,
-              epochs=epochs,
-              validation_split=0.01,
-              callbacks = [tbCallBack])
+                batch_size=batch_size,
+                epochs=epochs,
+                validation_split=0.01,
+                callbacks = [tbCallBack])
     
 def generateInferenceModel(encoder_inputs, encoder_states,input_token_index,target_token_index,decoder_lstm,decoder_inputs,decoder_dense):
 # Once the model is trained, we connect the encoder/decoder and we create a new model
