@@ -8,7 +8,7 @@ import numpy as np
 import _pickle as pickle
 
 batch_size = 128  # Batch size for training.
-epochs = 10  # Number of epochs to train for.
+epochs = 20  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
 num_samples = 30000 #145437  # Number of samples to train on.
 # Path to the data txt file on disk.
@@ -147,6 +147,7 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
+    #categorical_crossentropy:  loss between the true classes and predicted classes. The labels are given in an one_hot format.
     model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
                 batch_size=batch_size,
                 epochs=epochs,
