@@ -8,14 +8,18 @@ import numpy as np
 import _pickle as pickle
 
 batch_size = 128  # Batch size for training.
-epochs = 20  # Number of epochs to train for.
+epochs = 2  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
 num_samples = 30000 #145437  # Number of samples to train on.
 # Path to the data txt file on disk.
-data_path = './cat-eng/cat.txt' # to replace by the actual dataset name
+#data_path = './cat-eng/cat.txt' # to replace by the actual dataset name
+# el dataset en catala nomes te 1336 linies
+data_path = './spa-eng/spa.txt' #139705
 encoder_path='encoder_modelPredTranslation.h5'
 decoder_path='decoder_modelPredTranslation.h5'
-LOG_PATH='/home/alumne/projecte/xnap-project-ed_group_07/log' #aixo quan es en remot
+#LOG_PATH='/home/alumne/projecte/xnap-project-ed_group_07/log' #quan estem en remot
+LOG_PATH='./log' #quan estem en local
+
 
 
 def prepareData(data_path):
@@ -26,7 +30,7 @@ def prepareData(data_path):
 
 def extractChar(data_path,exchangeLanguage=False):
     # We extract the data (Sentence1 \t Sentence 2) from the anki text file
-    input_texts = []
+    input_texts = [] 
     target_texts = []
     input_characters = set()
     target_characters = set()
