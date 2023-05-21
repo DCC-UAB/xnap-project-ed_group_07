@@ -28,7 +28,7 @@ def prepareData(data_path):
     
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length
 
-def extractChar(data_path,exchangeLanguage=False, batch_inici, batch_final):
+def extractChar(data_path,exchangeLanguage=False, batch_inici=0, batch_final=30000):
     # We extract the data (Sentence1 \t Sentence 2) from the anki text file
     input_texts = [] 
     target_texts = []
@@ -129,6 +129,8 @@ def modelTranslation2(num_encoder_tokens,num_decoder_tokens):
 	
 def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 # We crete the model 1 encoder(lstm) + 1 decode (LSTM) + 1 Dense layer + softmax
+    try:
+        model.load_weights('weights.h5')
 
     encoder_inputs = Input(shape=(None, num_encoder_tokens))
     encoder = LSTM(latent_dim, return_state=True)
@@ -138,12 +140,13 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
     decoder_inputs = Input(shape=(None, num_decoder_tokens))
     decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
     decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
-                                         initial_state=encoder_states)
+                                            initial_state=encoder_states)
     decoder_dense = Dense(num_decoder_tokens, activation='softmax')
     decoder_outputs = decoder_dense(decoder_outputs)
 
     model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
-    
+        
+    model.save_weights('weights.h5')
     return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
 
 def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data):
