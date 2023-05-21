@@ -28,7 +28,7 @@ def prepareData(data_path):
     
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length
 
-def extractChar(data_path,exchangeLanguage=False):
+def extractChar(data_path,exchangeLanguage=False, batch_inici, batch_final):
     # We extract the data (Sentence1 \t Sentence 2) from the anki text file
     input_texts = [] 
     target_texts = []
@@ -37,7 +37,8 @@ def extractChar(data_path,exchangeLanguage=False):
     lines = open(data_path).read().split('\n')
     print(str(len(lines) - 1))
     if (exchangeLanguage==False):
-        for line in lines[: min(num_samples, len(lines) - 1)]: #change
+        # for line in lines[: min(num_samples, len(lines) - 1)]: #change
+        for line in lines[batch_inici, batch_final]:
             input_text, target_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -53,7 +54,8 @@ def extractChar(data_path,exchangeLanguage=False):
         target_characters = sorted(list(target_characters))
 
     else:
-        for line in lines[: min(num_samples, len(lines) - 1)]:
+        # for line in lines[: min(num_samples, len(lines) - 1)]:
+        for line in lines[batch_inici, batch_final]:
             target_text , input_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -69,6 +71,7 @@ def extractChar(data_path,exchangeLanguage=False):
         target_characters = sorted(list(target_characters))
 
     return input_characters,target_characters,input_texts,target_texts
+    
     
 def encodingChar(input_characters,target_characters,input_texts,target_texts):
 # We encode the dataset in a format that can be used by our Seq2Seq model (hot encoding).
