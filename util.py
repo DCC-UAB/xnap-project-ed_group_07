@@ -22,13 +22,15 @@ LOG_PATH='./log' #quan estem en local
 
 
 
-def prepareData(data_path):
-    input_characters,target_characters,input_texts,target_texts=extractChar(data_path)
+def prepareData(data_path, batch_inici, batch_final):
+    print('goo',batch_inici,batch_final)
+
+    input_characters,target_characters,input_texts,target_texts=extractChar(data_path, batch_inici, batch_final)
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
     
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length
 
-def extractChar(data_path,exchangeLanguage=False, batch_inici=0, batch_final=30000):
+def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
     # We extract the data (Sentence1 \t Sentence 2) from the anki text file
     input_texts = [] 
     target_texts = []
@@ -38,7 +40,10 @@ def extractChar(data_path,exchangeLanguage=False, batch_inici=0, batch_final=300
     print(str(len(lines) - 1))
     if (exchangeLanguage==False):
         # for line in lines[: min(num_samples, len(lines) - 1)]: #change
-        for line in lines[batch_inici, batch_final]:
+        if batch_final <= len(lines):
+            batch_final=min(batch_final, len(lines) - 1)
+        for line in lines[batch_inici: batch_final-1]:
+            print('aveureeee',batch_inici, batch_final)
             input_text, target_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -55,7 +60,11 @@ def extractChar(data_path,exchangeLanguage=False, batch_inici=0, batch_final=300
 
     else:
         # for line in lines[: min(num_samples, len(lines) - 1)]:
-        for line in lines[batch_inici, batch_final]:
+        print('BATCHSIZEEEEE',batch_final)
+        if batch_final <= len(lines):
+            print('FINALLLL', batch_final)
+            batch_final=min(batch_final, len(lines) - 1)
+        for line in lines[batch_inici: batch_final]:
             target_text , input_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -129,24 +138,42 @@ def modelTranslation2(num_encoder_tokens,num_decoder_tokens):
 	
 def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 # We crete the model 1 encoder(lstm) + 1 decode (LSTM) + 1 Dense layer + softmax
+    
     try:
-        model.load_weights('weights.h5')
+        inicialized_weights = model.load_weights('weights.h5') #donarà error a la primera iteració perque encara no tenim creat
+    
+    except:
 
-    encoder_inputs = Input(shape=(None, num_encoder_tokens))
-    encoder = LSTM(latent_dim, return_state=True)
-    encoder_outputs, state_h, state_c = encoder(encoder_inputs)
-    encoder_states = [state_h, state_c]
+        encoder_inputs = Input(shape=(None, num_encoder_tokens))
+        encoder = LSTM(latent_dim, return_state=True)
+        encoder_outputs, state_h, state_c = encoder(encoder_inputs)
+        encoder_states = [state_h, state_c]
 
-    decoder_inputs = Input(shape=(None, num_decoder_tokens))
-    decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
-    decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
-                                            initial_state=encoder_states)
-    decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-    decoder_outputs = decoder_dense(decoder_outputs)
+        decoder_inputs = Input(shape=(None, num_decoder_tokens))
+        decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
+        decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
+                                                initial_state=encoder_states)
+        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+        decoder_outputs = decoder_dense(decoder_outputs)
 
-    model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
-        
-    model.save_weights('weights.h5')
+        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+    else:
+
+        encoder_inputs = Input(shape=(None, num_encoder_tokens))
+        encoder = LSTM(latent_dim, return_state=True, weights = inicialized_weights )
+        encoder_outputs, state_h, state_c = encoder(encoder_inputs)
+        encoder_states = [state_h, state_c]
+
+        decoder_inputs = Input(shape=(None, num_decoder_tokens))
+        decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
+        decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
+                                                initial_state=encoder_states)
+        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+        decoder_outputs = decoder_dense(decoder_outputs)
+
+        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+
+    model.save_weights('weights.h5') #ho guardem en tots 2 casos
     return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
 
 def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data):

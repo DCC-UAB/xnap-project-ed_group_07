@@ -1,4 +1,5 @@
-from tqdm.auto import tqdm
+#from tqdm.auto import tqdm 
+from tqdm import tqdm
 import wandb
 
 def train(model, loader, criterion, optimizer, config):
