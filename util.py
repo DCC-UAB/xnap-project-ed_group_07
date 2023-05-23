@@ -6,6 +6,7 @@ from keras.models import load_model
 from keras.callbacks import TensorBoard
 import numpy as np
 import _pickle as pickle
+import wandb
 
 batch_size = 128  # Batch size for training.
 epochs = 2  # Number of epochs to train for.
@@ -83,8 +84,8 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
 # 2. We create a dictonary for both language
 # 3. We store their encoding and return them and their respective dictonary
     
-    num_encoder_tokens = len(input_characters) #numero de lletres llengua entrada
-    num_decoder_tokens = len(target_characters) #numero de lletres llengua sortida
+    num_encoder_tokens = len(input_characters) #numero de lletres diferents llengua entrada
+    num_decoder_tokens = len(target_characters) #numero de lletres diferents llengua sortida
     max_encoder_seq_length = max([len(txt) for txt in input_texts]) #max len d'una linia entrada
     max_decoder_seq_length = max([len(txt) for txt in target_texts]) #max len d'una linia sortida
     print('Number of num_encoder_tokens:', num_encoder_tokens)
@@ -94,7 +95,7 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
     print('Max sequence length for inputs:', max_encoder_seq_length)
     print('Max sequence length for outputs:', max_decoder_seq_length)
     
-    input_token_index = dict([(char, i) for i, char in enumerate(input_characters)]) # {0: a, 1: b, 2: c}
+    input_token_index = dict([(char, i) for i, char in enumerate(input_characters)]) # {"a": 0, "b": 1, "?": 2}
     target_token_index = dict([(char, i) for i, char in enumerate(target_characters)])
 
     encoder_input_data = np.zeros((len(input_texts), max_encoder_seq_length, num_encoder_tokens),dtype='float32')
@@ -136,20 +137,26 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 
     except: #primera iteracio
         encoder_inputs = Input(shape=(None, num_encoder_tokens)) 
-        # input tendor to the encoder. It has a shape of (None, num_encoder_tokens), where None represents the variable-length 
-        # sequence and num_encoder_tokens is the number of tokens in the input sequence.
+        # input tensor to the encoder. It has a shape of (None, num_encoder_tokens), where None represents the variable-length 
+        # sequence and num_encoder_tokens is the number of tokens in the input lenguage.
         encoder = LSTM(latent_dim, return_state=True) 
         # latent_dim: Latent dimensionality of the encoding space.
         # encoder LSTM layer is created with latent_dim units
-        encoder_outputs, state_h, state_c = encoder(encoder_inputs)
+        encoder_outputs, state_h, state_c = encoder(encoder_inputs) 
+        # encoder_outputs: output sequence from the encoder LSTM layer
+        # state_h and state_c: final hidden state and cell state of the encoder.
         encoder_states = [state_h, state_c]
+        # will be used as the initial state for the decoder
 
         decoder_inputs = Input(shape=(None, num_decoder_tokens))
         decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
         decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
                                                 initial_state=encoder_states)
+        # decoder_outputs: output sequence from the decoder LSTM layer.
         decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+        # dense layer with activation softmax. It maps the decoder LSTM outputs to probabilities over the target vocabulary.
         decoder_outputs = decoder_dense(decoder_outputs)
+        #output of the decoder after passing through the dense layer.
 
         model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
     
@@ -174,7 +181,7 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data):
 # We load tensorboad
 # We train the model
-    LOG_PATH="/home/alumne/projecte/xnap-project-ed_group_07/log"
+    LOG_PATH="./log"
         
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
