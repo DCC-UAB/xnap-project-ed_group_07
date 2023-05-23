@@ -5,13 +5,10 @@ batch_final = num_samples
 data_path = './spa-eng/spa.txt' #139705
 lines = open(data_path).read().split('\n')
 batches = ((len(lines)-1)//num_samples)+1 #afegim un batch més per als que sobren
-print('bat', batches)
+
 
 for i in range (batches):
-    print('ENTRAAAAAAAA')
-    print('goo',batch_inici,batch_final)
-    print('GOO')
-    print('num_sam',num_samples)
+
     #load the data and format  them for being processed
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length=prepareData(data_path, batch_inici, batch_final)
 

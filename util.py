@@ -6,6 +6,8 @@ from keras.models import load_model
 from keras.callbacks import TensorBoard
 import numpy as np
 import _pickle as pickle
+import wandb
+import random
 
 batch_size = 128  # Batch size for training.
 epochs = 2  # Number of epochs to train for.
@@ -21,9 +23,25 @@ decoder_path='decoder_modelPredTranslation.h5'
 LOG_PATH='./log' #quan estem en local
 
 
+#API
+
+# start a new wandb run to track this script
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="Translation",
+    
+    # track hyperparameters and run metadata
+    config={
+    "learning_rate": 0.02,
+    "architecture": "LSTM",
+    "dataset": "spa-eng/spa.txt",
+    "epochs": 2,
+    }
+)
+
+
 
 def prepareData(data_path, batch_inici, batch_final):
-    print('goo',batch_inici,batch_final)
 
     input_characters,target_characters,input_texts,target_texts=extractChar(data_path, batch_inici, batch_final)
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
@@ -37,13 +55,12 @@ def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
     input_characters = set()
     target_characters = set()
     lines = open(data_path).read().split('\n')
-    print(str(len(lines) - 1))
+
     if (exchangeLanguage==False):
         # for line in lines[: min(num_samples, len(lines) - 1)]: #change
-        if batch_final <= len(lines):
-            batch_final=min(batch_final, len(lines) - 1)
+        batch_final=min(batch_final, len(lines) - 1)
         for line in lines[batch_inici: batch_final-1]:
-            print('aveureeee',batch_inici, batch_final)
+            
             input_text, target_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -60,10 +77,8 @@ def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
 
     else:
         # for line in lines[: min(num_samples, len(lines) - 1)]:
-        print('BATCHSIZEEEEE',batch_final)
-        if batch_final <= len(lines):
-            print('FINALLLL', batch_final)
-            batch_final=min(batch_final, len(lines) - 1)
+        
+        batch_final=min(batch_final, len(lines) - 1)
         for line in lines[batch_inici: batch_final]:
             target_text , input_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
@@ -191,6 +206,9 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
                 validation_split=0.01,
                 callbacks = [tbCallBack])
     
+    # log metrics to wandb
+    wandb.log({"acc": acc, "loss": loss})
+
 def generateInferenceModel(encoder_inputs, encoder_states,input_token_index,target_token_index,decoder_lstm,decoder_inputs,decoder_dense):
 # Once the model is trained, we connect the encoder/decoder and we create a new model
 # Finally we save everything
