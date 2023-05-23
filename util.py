@@ -25,18 +25,18 @@ LOG_PATH='./log' #quan estem en local
 #API
 
 # start a new wandb run to track this script
-# wandb.init(
-#     # set the wandb project where this run will be logged
-#     project="Translation",
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="Translation",
     
-#     # track hyperparameters and run metadata
-#     config={
-#     "learning_rate": 0.02,
-#     "architecture": "LSTM",
-#     "dataset": "spa-eng/spa.txt",
-#     "epochs": 2,
-#     }
-# )
+    # track hyperparameters and run metadata
+    config={
+    "learning_rate": 0.02,
+    "architecture": "LSTM",
+    "dataset": "spa-eng/spa.txt",
+    "epochs": 2,
+    }
+)
 
 
 def prepareData(data_path, batch_inici, batch_final):
@@ -206,14 +206,17 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
     # Run training
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
     #categorical_crossentropy:  loss between the true classes and predicted classes. The labels are given in an one_hot format.
-    model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
+    history = model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
                 batch_size=batch_size,
                 epochs=epochs,
                 validation_split=0.01,
                 callbacks = [tbCallBack])
-    
+    #Retrieve loss and accuracy from the history object    
+    loss = history.history['loss'][0]
+    accuracy = history.history['accuracy'][0] 
     # log metrics to wandb
-    #wandb.log({"acc": acc, "loss": loss})
+    wandb.log({"accuracy": accuracy, "loss": loss})
+    
 
 def generateInferenceModel(encoder_inputs, encoder_states,input_token_index,target_token_index,decoder_lstm,decoder_inputs,decoder_dense):
 # Once the model is trained, we connect the encoder/decoder and we create a new model

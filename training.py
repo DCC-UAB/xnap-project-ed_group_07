@@ -28,3 +28,4 @@ for i in range (batches):
 # our model is made for being used with different langages that do not have the same number of letters and the same alphabet
 saveChar2encoding("./output/char2encoding.pkl",input_token_index,max_encoder_seq_length,num_encoder_tokens,reverse_target_char_index,num_decoder_tokens,target_token_index)
 
+wandb.finish()
