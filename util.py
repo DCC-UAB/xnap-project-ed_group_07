@@ -6,9 +6,11 @@ from keras.models import load_model
 from keras.callbacks import TensorBoard
 import numpy as np
 import _pickle as pickle
+import wandb
+import random
 
 batch_size = 128  # Batch size for training.
-epochs = 2  # Number of epochs to train for.
+epochs = 1  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
 num_samples = 30000 #145437  # Number of samples to train on.
 # Path to the data txt file on disk.
@@ -20,10 +22,28 @@ decoder_path='decoder_modelPredTranslation.h5'
 #LOG_PATH='/home/alumne/projecte/xnap-project-ed_group_07/log' #quan estem en remot
 LOG_PATH='./log' #quan estem en local
 
+#API
+
+# start a new wandb run to track this script
+# wandb.init(
+#     # set the wandb project where this run will be logged
+#     project="Translation",
+    
+#     # track hyperparameters and run metadata
+#     config={
+#     "learning_rate": 0.02,
+#     "architecture": "LSTM",
+#     "dataset": "spa-eng/spa.txt",
+#     "epochs": 2,
+#     }
+# )
 
 
-def prepareData(data_path):
-    input_characters,target_characters,input_texts,target_texts=extractChar(data_path)
+def prepareData(data_path, batch_inici, batch_final):
+
+    input_characters,target_characters,input_texts,target_texts=extractChar(data_path, batch_inici, batch_final)
+    #es bidireccional per tant li passem com a 4 argument True si volem que faci la traduccio al reves
+    
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
     
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length
@@ -37,8 +57,10 @@ def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
     lines = open(data_path).read().split('\n')
 
     if (exchangeLanguage==False):
+
         # for line in lines[: min(num_samples, len(lines) - 1)]: #change
-        for line in lines[batch_inici, batch_final]:
+        batch_final=min(batch_final, len(lines) - 1)
+        for line in lines[batch_inici: batch_final]:
             input_text, target_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -55,7 +77,10 @@ def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
 
     else:
         # for line in lines[: min(num_samples, len(lines) - 1)]:
-        for line in lines[batch_inici, batch_final]:
+        
+        batch_final=min(batch_final, len(lines) - 1)
+        for line in lines[batch_inici: batch_final]:
+
             target_text , input_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -107,9 +132,8 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
             if t > 0:
                 decoder_target_data[i, t - 1, target_token_index[char]] = 1.
 
-
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length
-	
+    
 def modelTranslation2(num_encoder_tokens,num_decoder_tokens):
 # We crete the model 1 encoder(gru) + 1 decode (gru) + 1 Dense layer + softmax
 
@@ -126,28 +150,51 @@ def modelTranslation2(num_encoder_tokens,num_decoder_tokens):
     model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
     
     return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_gru,decoder_dense
-	
+    
 def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 # We crete the model 1 encoder(lstm) + 1 decode (LSTM) + 1 Dense layer + softmax
     
     try:
-        model.load_weights('weights.h5')
+        inicialized_weights = model.load_weights('weights.h5') #donarà error a la primera iteració perque encara no tenim creat
 
-    encoder_inputs = Input(shape=(None, num_encoder_tokens))
-    encoder = LSTM(latent_dim, return_state=True)
-    encoder_outputs, state_h, state_c = encoder(encoder_inputs)
-    encoder_states = [state_h, state_c]
-
-    decoder_inputs = Input(shape=(None, num_decoder_tokens))
-    decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
-    decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
-                                            initial_state=encoder_states)
-    decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-    decoder_outputs = decoder_dense(decoder_outputs)
-
-    model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+    except: #primera iteracio
+        encoder_inputs = Input(shape=(None, num_encoder_tokens)) 
+        # input tensor to the encoder. It has a shape of (None, num_encoder_tokens), where None represents the variable-length 
+        # sequence and num_encoder_tokens is the number of tokens in the input lenguage.
+        encoder = LSTM(latent_dim, return_state=True) 
+        # latent_dim: Latent dimensionality of the encoding space.
+        # encoder LSTM layer is created with latent_dim units
+        encoder_outputs, state_h, state_c = encoder(encoder_inputs) 
+        # encoder_outputs: output sequence from the encoder LSTM layer
+        # state_h and state_c: final hidden state and cell state of the encoder.
+        encoder_states = [state_h, state_c]
+        # will be used as the initial state for the decoder
         
-    model.save_weights('weights.h5')
+        decoder_inputs = Input(shape=(None, num_decoder_tokens))
+        decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
+        decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
+                                                initial_state=encoder_states)
+
+        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+        decoder_outputs = decoder_dense(decoder_outputs)
+
+        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+    
+    else:
+        encoder_inputs = Input(shape=(None, num_encoder_tokens))
+        encoder = LSTM(latent_dim, return_state=True, weights = inicialized_weights )
+
+        # decoder_outputs: output sequence from the decoder LSTM layer.
+        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+        # dense layer with activation softmax. It maps the decoder LSTM outputs to probabilities over the target vocabulary.
+        decoder_outputs = decoder_dense(decoder_outputs)
+        #output of the decoder after passing through the dense layer.
+
+        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+
+
+    model.save_weights('weights.h5') #ho guardem en tots 2 casos
+
     return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
 
 def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data):
@@ -166,7 +213,7 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
                 callbacks = [tbCallBack])
     
     # log metrics to wandb
-    wandb.log({"acc": acc, "loss": loss})
+    #wandb.log({"acc": acc, "loss": loss})
 
 def generateInferenceModel(encoder_inputs, encoder_states,input_token_index,target_token_index,decoder_lstm,decoder_inputs,decoder_dense):
 # Once the model is trained, we connect the encoder/decoder and we create a new model
@@ -207,7 +254,6 @@ def decode_sequence(input_seq,encoder_model,decoder_model,num_decoder_tokens,tar
     target_seq = np.zeros((1, 1, num_decoder_tokens))
     
     target_seq[0, 0, target_token_index['\t']] = 1.
-
 
     stop_condition = False
     decoded_sentence = ''
