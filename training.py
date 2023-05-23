@@ -8,7 +8,11 @@ batches = ((len(lines)-1)//num_samples)+1 #afegim un batch més per als que sobr
 
 
 for i in range (batches):
+<<<<<<< HEAD
 
+=======
+    print("++++++++", i)
+>>>>>>> eb32088a35f222ed7b7c613ddd72d618854e0f94
     #load the data and format  them for being processed
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length=prepareData(data_path, batch_inici, batch_final)
 

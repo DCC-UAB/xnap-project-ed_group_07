@@ -6,8 +6,6 @@ from keras.models import load_model
 from keras.callbacks import TensorBoard
 import numpy as np
 import _pickle as pickle
-import wandb
-import random
 
 batch_size = 128  # Batch size for training.
 epochs = 2  # Number of epochs to train for.
@@ -23,27 +21,9 @@ decoder_path='decoder_modelPredTranslation.h5'
 LOG_PATH='./log' #quan estem en local
 
 
-#API
 
-# start a new wandb run to track this script
-wandb.init(
-    # set the wandb project where this run will be logged
-    project="Translation",
-    
-    # track hyperparameters and run metadata
-    config={
-    "learning_rate": 0.02,
-    "architecture": "LSTM",
-    "dataset": "spa-eng/spa.txt",
-    "epochs": 2,
-    }
-)
-
-
-
-def prepareData(data_path, batch_inici, batch_final):
-
-    input_characters,target_characters,input_texts,target_texts=extractChar(data_path, batch_inici, batch_final)
+def prepareData(data_path):
+    input_characters,target_characters,input_texts,target_texts=extractChar(data_path)
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
     
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length
@@ -58,9 +38,7 @@ def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
 
     if (exchangeLanguage==False):
         # for line in lines[: min(num_samples, len(lines) - 1)]: #change
-        batch_final=min(batch_final, len(lines) - 1)
-        for line in lines[batch_inici: batch_final-1]:
-            
+        for line in lines[batch_inici, batch_final]:
             input_text, target_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -77,9 +55,7 @@ def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
 
     else:
         # for line in lines[: min(num_samples, len(lines) - 1)]:
-        
-        batch_final=min(batch_final, len(lines) - 1)
-        for line in lines[batch_inici: batch_final]:
+        for line in lines[batch_inici, batch_final]:
             target_text , input_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -105,10 +81,10 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
 # 2. We create a dictonary for both language
 # 3. We store their encoding and return them and their respective dictonary
     
-    num_encoder_tokens = len(input_characters)
-    num_decoder_tokens = len(target_characters)
-    max_encoder_seq_length = max([len(txt) for txt in input_texts])
-    max_decoder_seq_length = max([len(txt) for txt in target_texts])
+    num_encoder_tokens = len(input_characters) #numero de lletres diferents llengua entrada
+    num_decoder_tokens = len(target_characters) #numero de lletres diferents llengua sortida
+    max_encoder_seq_length = max([len(txt) for txt in input_texts]) #max len d'una linia entrada
+    max_decoder_seq_length = max([len(txt) for txt in target_texts]) #max len d'una linia sortida
     print('Number of num_encoder_tokens:', num_encoder_tokens)
     print('Number of samples:', len(input_texts))
     print('Number of unique input tokens:', num_encoder_tokens)
@@ -116,7 +92,7 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
     print('Max sequence length for inputs:', max_encoder_seq_length)
     print('Max sequence length for outputs:', max_decoder_seq_length)
     
-    input_token_index = dict([(char, i) for i, char in enumerate(input_characters)])
+    input_token_index = dict([(char, i) for i, char in enumerate(input_characters)]) # {"a": 0, "b": 1, "?": 2}
     target_token_index = dict([(char, i) for i, char in enumerate(target_characters)])
 
     encoder_input_data = np.zeros((len(input_texts), max_encoder_seq_length, num_encoder_tokens),dtype='float32')
@@ -155,46 +131,29 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 # We crete the model 1 encoder(lstm) + 1 decode (LSTM) + 1 Dense layer + softmax
     
     try:
-        inicialized_weights = model.load_weights('weights.h5') #donarà error a la primera iteració perque encara no tenim creat
-    
-    except:
+        model.load_weights('weights.h5')
 
-        encoder_inputs = Input(shape=(None, num_encoder_tokens))
-        encoder = LSTM(latent_dim, return_state=True)
-        encoder_outputs, state_h, state_c = encoder(encoder_inputs)
-        encoder_states = [state_h, state_c]
+    encoder_inputs = Input(shape=(None, num_encoder_tokens))
+    encoder = LSTM(latent_dim, return_state=True)
+    encoder_outputs, state_h, state_c = encoder(encoder_inputs)
+    encoder_states = [state_h, state_c]
 
-        decoder_inputs = Input(shape=(None, num_decoder_tokens))
-        decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
-        decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
-                                                initial_state=encoder_states)
-        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-        decoder_outputs = decoder_dense(decoder_outputs)
+    decoder_inputs = Input(shape=(None, num_decoder_tokens))
+    decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
+    decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
+                                            initial_state=encoder_states)
+    decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+    decoder_outputs = decoder_dense(decoder_outputs)
 
-        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
-    else:
-
-        encoder_inputs = Input(shape=(None, num_encoder_tokens))
-        encoder = LSTM(latent_dim, return_state=True, weights = inicialized_weights )
-        encoder_outputs, state_h, state_c = encoder(encoder_inputs)
-        encoder_states = [state_h, state_c]
-
-        decoder_inputs = Input(shape=(None, num_decoder_tokens))
-        decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
-        decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
-                                                initial_state=encoder_states)
-        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-        decoder_outputs = decoder_dense(decoder_outputs)
-
-        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
-
-    model.save_weights('weights.h5') #ho guardem en tots 2 casos
+    model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+        
+    model.save_weights('weights.h5')
     return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
 
 def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data):
 # We load tensorboad
 # We train the model
-    LOG_PATH="/home/alumne/projecte/xnap-project-ed_group_07/log"
+    LOG_PATH="./log"
         
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
