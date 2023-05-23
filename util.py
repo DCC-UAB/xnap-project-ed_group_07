@@ -24,6 +24,8 @@ LOG_PATH='./log' #quan estem en local
 
 def prepareData(data_path, batch_inici, batch_final):
     input_characters,target_characters,input_texts,target_texts=extractChar(data_path, False, batch_inici, batch_final) #changed
+    #es bidireccional per tant li passem True si volem que faci la traduccio al reves
+    
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
     
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length
@@ -81,10 +83,10 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
 # 2. We create a dictonary for both language
 # 3. We store their encoding and return them and their respective dictonary
     
-    num_encoder_tokens = len(input_characters)
-    num_decoder_tokens = len(target_characters)
-    max_encoder_seq_length = max([len(txt) for txt in input_texts])
-    max_decoder_seq_length = max([len(txt) for txt in target_texts])
+    num_encoder_tokens = len(input_characters) #numero de lletres llengua entrada
+    num_decoder_tokens = len(target_characters) #numero de lletres llengua sortida
+    max_encoder_seq_length = max([len(txt) for txt in input_texts]) #max len d'una linia entrada
+    max_decoder_seq_length = max([len(txt) for txt in target_texts]) #max len d'una linia sortida
     print('Number of num_encoder_tokens:', num_encoder_tokens)
     print('Number of samples:', len(input_texts))
     print('Number of unique input tokens:', num_encoder_tokens)
@@ -92,7 +94,7 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
     print('Max sequence length for inputs:', max_encoder_seq_length)
     print('Max sequence length for outputs:', max_decoder_seq_length)
     
-    input_token_index = dict([(char, i) for i, char in enumerate(input_characters)])
+    input_token_index = dict([(char, i) for i, char in enumerate(input_characters)]) # {0: a, 1: b, 2: c}
     target_token_index = dict([(char, i) for i, char in enumerate(target_characters)])
 
     encoder_input_data = np.zeros((len(input_texts), max_encoder_seq_length, num_encoder_tokens),dtype='float32')
