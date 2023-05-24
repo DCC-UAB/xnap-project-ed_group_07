@@ -10,7 +10,7 @@ import wandb
 import random
 
 batch_size = 128  # Batch size for training.
-epochs = 1  # Number of epochs to train for.
+epochs = 15  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
 num_samples = 30000 #145437  # Number of samples to train on.
 # Path to the data txt file on disk.
