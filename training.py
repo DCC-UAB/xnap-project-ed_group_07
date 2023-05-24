@@ -8,10 +8,14 @@ batches = ((len(lines)-1)//num_samples)+1 #afegim un batch més per als que sobr
 
 
 for i in range (batches):
-
+    num_encoder_tokens_ant = num_encoder_tokens
+    num_decoder_tokens_ant = num_decoder_tokens
     #load the data and format  them for being processed
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length=prepareData(data_path, batch_inici, batch_final)
-
+    if num_encoder_tokens < num_encoder_tokens_ant:
+        num_decoder_tokens= num_encoder_tokens_ant
+    if num_decoder_tokens < num_decoder_tokens:
+        num_decoder_tokens = num_decoder_tokens_ant
     # we build the model
     model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense=modelTranslation(num_encoder_tokens,num_decoder_tokens)
 
