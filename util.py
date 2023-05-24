@@ -8,6 +8,7 @@ import numpy as np
 import _pickle as pickle
 import wandb
 import random
+import tensorflow as tf
 
 batch_size = 128  # Batch size for training.
 epochs = 1  # Number of epochs to train for.
@@ -58,9 +59,9 @@ def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
 
     if (exchangeLanguage==False):
 
-        # for line in lines[: min(num_samples, len(lines) - 1)]: #change
-        batch_final=min(batch_final, len(lines) - 1)
-        for line in lines[batch_inici: batch_final]:
+        for line in lines[: min(num_samples, len(lines) - 1)]: #change
+        #batch_final=min(batch_final, len(lines) - 1)
+        #for line in lines[batch_inici: batch_final]:
             input_text, target_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -76,10 +77,10 @@ def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
         target_characters = sorted(list(target_characters))
 
     else:
-        # for line in lines[: min(num_samples, len(lines) - 1)]:
+        for line in lines[: min(num_samples, len(lines) - 1)]:
         
-        batch_final=min(batch_final, len(lines) - 1)
-        for line in lines[batch_inici: batch_final]:
+        #batch_final=min(batch_final, len(lines) - 1)
+        #for line in lines[batch_inici: batch_final]:
 
             target_text , input_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
@@ -155,46 +156,28 @@ def modelTranslation2(num_encoder_tokens,num_decoder_tokens):
 def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 # We crete the model 1 encoder(lstm) + 1 decode (LSTM) + 1 Dense layer + softmax
     
-    try:
-        inicialized_weights = model.load_weights('weights.h5') #donarà error a la primera iteració perque encara no tenim creat
-
-    except: #primera iteracio
-        encoder_inputs = Input(shape=(None, num_encoder_tokens)) 
-        # input tensor to the encoder. It has a shape of (None, num_encoder_tokens), where None represents the variable-length 
-        # sequence and num_encoder_tokens is the number of tokens in the input lenguage.
-        encoder = LSTM(latent_dim, return_state=True) 
-        # latent_dim: Latent dimensionality of the encoding space.
-        # encoder LSTM layer is created with latent_dim units
-        encoder_outputs, state_h, state_c = encoder(encoder_inputs) 
-        # encoder_outputs: output sequence from the encoder LSTM layer
-        # state_h and state_c: final hidden state and cell state of the encoder.
-        encoder_states = [state_h, state_c]
-        # will be used as the initial state for the decoder
-        
-        decoder_inputs = Input(shape=(None, num_decoder_tokens))
-        decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
-        decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
-                                                initial_state=encoder_states)
-
-        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-        decoder_outputs = decoder_dense(decoder_outputs)
-
-        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+    encoder_inputs = Input(shape=(None, num_encoder_tokens)) 
+    # input tensor to the encoder. It has a shape of (None, num_encoder_tokens), where None represents the variable-length 
+    # sequence and num_encoder_tokens is the number of tokens in the input lenguage.
+    encoder = LSTM(latent_dim, return_state=True) 
+    # latent_dim: Latent dimensionality of the encoding space.
+    # encoder LSTM layer is created with latent_dim units
+    encoder_outputs, state_h, state_c = encoder(encoder_inputs) 
+    # encoder_outputs: output sequence from the encoder LSTM layer
+    # state_h and state_c: final hidden state and cell state of the encoder.
+    encoder_states = [state_h, state_c]
+    # will be used as the initial state for the decoder
     
-    else:
-        encoder_inputs = Input(shape=(None, num_encoder_tokens))
-        encoder = LSTM(latent_dim, return_state=True, weights = inicialized_weights )
+    decoder_inputs = Input(shape=(None, num_decoder_tokens))
+    decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
+    decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
+                                            initial_state=encoder_states)
 
-        # decoder_outputs: output sequence from the decoder LSTM layer.
-        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-        # dense layer with activation softmax. It maps the decoder LSTM outputs to probabilities over the target vocabulary.
-        decoder_outputs = decoder_dense(decoder_outputs)
-        #output of the decoder after passing through the dense layer.
+    decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+    decoder_outputs = decoder_dense(decoder_outputs)
 
-        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
-
-
-    model.save_weights('weights.h5') #ho guardem en tots 2 casos
+    model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+    
 
     return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
 
@@ -202,16 +185,25 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
 # We load tensorboad
 # We train the model
     LOG_PATH="./log"
+    
         
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
     #categorical_crossentropy:  loss between the true classes and predicted classes. The labels are given in an one_hot format.
+    
     history = model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
                 batch_size=batch_size,
                 epochs=epochs,
                 validation_split=0.01,
                 callbacks = [tbCallBack])
+    
+    # history = model.fit([train_ds_1, train_ds_2], train_ds_3,
+    #             batch_size=batch_size,
+    #             epochs=epochs,
+    #             validation_split=0.01,
+    #             callbacks = [tbCallBack])
+    
     #Retrieve loss and accuracy from the history object    
     loss = history.history['loss'][0]
     accuracy = history.history['accuracy'][0] 

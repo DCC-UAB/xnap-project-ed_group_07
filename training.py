@@ -8,29 +8,17 @@ batches = ((len(lines)-1)//num_samples)+1 #afegim un batch més per als que sobr
 
 #tokens no depen de les dades ino de dataset
 #guardar fora dsp i model transl fora?
-
+    
+    
+#load the data and format  them for being processed
+encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length=prepareData(data_path, batch_inici, batch_final)
 
 # we build the model
 model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense=modelTranslation(num_encoder_tokens,num_decoder_tokens)
-    
 
-for i in range (batches):
-    #if i != 0:
-        #num_encoder_tokens_ant = num_encoder_tokens
-        #num_decoder_tokens_ant = num_decoder_tokens
-    
-    #load the data and format  them for being processed
-    encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length=prepareData(data_path, batch_inici, batch_final)
-    #if i != 0:
-        #if num_encoder_tokens < num_encoder_tokens_ant:
-            #num_decoder_tokens= num_encoder_tokens_ant
-        #if num_decoder_tokens < num_decoder_tokens:
-            #num_decoder_tokens = num_decoder_tokens_ant
-    # we train it
-    trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data)
+# we train it
+trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data)
 
-    batch_inici += num_samples
-    batch_final += num_samples
 
 # we build the final model for the inference (slightly different) and we save it
 encoder_model,decoder_model,reverse_target_char_index=generateInferenceModel(encoder_inputs, encoder_states,input_token_index,target_token_index,decoder_lstm,decoder_inputs,decoder_dense)
