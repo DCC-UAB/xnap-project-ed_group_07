@@ -106,6 +106,7 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
 # 2. We create a dictonary for both language
 # 3. We store their encoding and return them and their respective dictonary
     
+    #if num_encoder_tokens < 
     num_encoder_tokens = len(input_characters) #numero de lletres diferents llengua entrada
     num_decoder_tokens = len(target_characters) #numero de lletres diferents llengua sortida
     max_encoder_seq_length = max([len(txt) for txt in input_texts]) #max len d'una linia entrada
