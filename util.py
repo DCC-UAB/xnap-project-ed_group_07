@@ -11,9 +11,9 @@ import random
 import tensorflow as tf
 
 batch_size = 128  # Batch size for training.
-epochs = 1  # Number of epochs to train for.
+epochs = 10  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
-num_samples = 30000 #145437  # Number of samples to train on.
+num_samples = 300000 #145437  # Number of samples to train on.
 # Path to the data txt file on disk.
 #data_path = './cat-eng/cat.txt' # to replace by the actual dataset name
 # el dataset en catala nomes te 1336 linies
@@ -186,27 +186,42 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
 # We train the model
     LOG_PATH="./log"
     
+    num_smp = 30000
+    total_rows = len(encoder_input_data)
+    iters_per_epoch = total_rows // num_smp
+    
         
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
     #categorical_crossentropy:  loss between the true classes and predicted classes. The labels are given in an one_hot format.
     
-    history = model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
-                batch_size=batch_size,
-                epochs=epochs,
-                validation_split=0.01,
-                callbacks = [tbCallBack])
-    
-    # history = model.fit([train_ds_1, train_ds_2], train_ds_3,
+    for epoch in range(epochs):
+        for step in range(iters_per_epoch):
+            start_index = step * batch_size
+            end_index = (step + 1) * batch_size
+            encoder_input_batch = encoder_input_data[start_index:end_index]
+            decoder_input_batch = decoder_input_data[start_index:end_index]
+            decoder_target_batch = decoder_target_data[start_index:end_index]
+
+            model.fit([encoder_input_batch, decoder_input_batch], decoder_target_batch,
+                      batch_size=batch_size,
+                      epochs=1,
+                      validation_split=0.01,
+                      callbacks=[tbCallBack],
+                      verbose=2)
+        
+        
+    # history = model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
     #             batch_size=batch_size,
     #             epochs=epochs,
     #             validation_split=0.01,
     #             callbacks = [tbCallBack])
+
     
     #Retrieve loss and accuracy from the history object    
-    loss = history.history['loss'][0]
-    accuracy = history.history['accuracy'][0] 
+    loss = model.history.history['loss'][0]
+    accuracy = model.history.history['accuracy'][0] 
     # log metrics to wandb
     wandb.log({"accuracy": accuracy, "loss": loss})
     
