@@ -8,6 +8,20 @@ batches = ((len(lines)-1)//num_samples)+1 #afegim un batch més per als que sobr
 
 #tokens no depen de les dades ino de dataset
 #guardar fora dsp i model transl fora?
+
+train_dataloader = tf.keras.utils.text_dataset_from_directory(
+    data_path,
+    labels="inferred",
+    label_mode="int",
+    class_names=None,
+    batch_size=batch_size,
+    max_length=None,
+    shuffle=True,
+    seed=None,
+    validation_split=0.01,
+    subset=None,
+    follow_links=False,
+)
     
     
 #load the data and format  them for being processed

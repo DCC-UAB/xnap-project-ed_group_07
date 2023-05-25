@@ -196,27 +196,27 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
     #categorical_crossentropy:  loss between the true classes and predicted classes. The labels are given in an one_hot format.
     
-    for epoch in range(epochs):
-        for step in range(iters_per_epoch):
-            start_index = step * batch_size
-            end_index = (step + 1) * batch_size
-            encoder_input_batch = encoder_input_data[start_index:end_index]
-            decoder_input_batch = decoder_input_data[start_index:end_index]
-            decoder_target_batch = decoder_target_data[start_index:end_index]
+    # for epoch in range(epochs):
+    #     for step in range(iters_per_epoch):
+    #         start_index = step * batch_size
+    #         end_index = (step + 1) * batch_size
+    #         encoder_input_batch = encoder_input_data[start_index:end_index]
+    #         decoder_input_batch = decoder_input_data[start_index:end_index]
+    #         decoder_target_batch = decoder_target_data[start_index:end_index]
 
-            model.fit([encoder_input_batch, decoder_input_batch], decoder_target_batch,
-                      batch_size=batch_size,
-                      epochs=1,
-                      validation_split=0.01,
-                      callbacks=[tbCallBack],
-                      verbose=2)
+    #         model.fit([encoder_input_batch, decoder_input_batch], decoder_target_batch,
+    #                   batch_size=batch_size,
+    #                   epochs=1,
+    #                   validation_split=0.01,
+    #                   callbacks=[tbCallBack],
+    #                   verbose=2)
         
         
-    # history = model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
-    #             batch_size=batch_size,
-    #             epochs=epochs,
-    #             validation_split=0.01,
-    #             callbacks = [tbCallBack])
+    model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
+                batch_size=batch_size,
+                epochs=epochs,
+                validation_split=0.01,
+                callbacks = [tbCallBack])
 
     
     #Retrieve loss and accuracy from the history object    
