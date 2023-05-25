@@ -5,22 +5,39 @@ batch_final = num_samples
 data_path = './spa-eng/spa.txt' #139705
 lines = open(data_path).read().split('\n')
 batches = ((len(lines)-1)//num_samples)+1 #afegim un batch més per als que sobren
-
 #tokens no depen de les dades ino de dataset
 #guardar fora dsp i model transl fora?
 
-train_dataloader = tf.keras.utils.text_dataset_from_directory(
-    data_path,
-    labels="inferred",
-    label_mode="int",
-    class_names=None,
+
+with open('spa.txt', 'r') as f:
+   
+    with open('source.txt', 'w') as f_source:
+        with open('target.txt', 'w') as f_target:
+            for line in f:
+                parts = line.strip().split(' ')
+                source = parts[0]
+                target = parts[1]
+                f_source.write(source + '\n')
+                f_target.write(target + '\n')
+path_loader_source = './spa-eng/train/source'
+path_loader_target = './spa-eng/train/target'
+
+source_dataloader = tf.keras.preprocessing.text_dataset_from_directory(
+    path_loader_source,
     batch_size=batch_size,
-    max_length=None,
     shuffle=True,
     seed=None,
     validation_split=0.01,
     subset=None,
-    follow_links=False,
+)
+
+target_dataloader = tf.keras.preprocessing.text_dataset_from_directory(
+    path_loader_target,
+    batch_size=batch_size,
+    shuffle=True,
+    seed=None,
+    validation_split=0.01,
+    subset=None,
 )
     
     
