@@ -13,7 +13,7 @@ import tensorflow as tf
 batch_size = 128  # Batch size for training.
 epochs = 10  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
-num_samples = 300000 #145437  # Number of samples to train on.
+num_samples = 30000 #145437  # Number of samples to train on.
 # Path to the data txt file on disk.
 #data_path = './cat-eng/cat.txt' # to replace by the actual dataset name
 # el dataset en catala nomes te 1336 linies
@@ -26,18 +26,18 @@ LOG_PATH='./log' #quan estem en local
 #API
 
 # start a new wandb run to track this script
-wandb.init(
-    # set the wandb project where this run will be logged
-    project="Translation",
+# wandb.init(
+#     # set the wandb project where this run will be logged
+#     project="Translation",
     
-    # track hyperparameters and run metadata
-    config={
-    "learning_rate": 0.02,
-    "architecture": "LSTM",
-    "dataset": "spa-eng/spa.txt",
-    "epochs": 2,
-    }
-)
+#     # track hyperparameters and run metadata
+#     config={
+#     "learning_rate": 0.02,
+#     "architecture": "LSTM",
+#     "dataset": "spa-eng/spa.txt",
+#     "epochs": 2,
+#     }
+# )
 
 
 def prepareData(data_path, batch_inici, batch_final):
@@ -48,8 +48,9 @@ def prepareData(data_path, batch_inici, batch_final):
 
     with open('./spa-eng/train/source/source.txt', 'w') as f_source:
         with open('./spa-eng/train/target/target.txt', 'w') as f_target:
-            f_source.write(input_texts + '\n')
-            f_target.write(target_texts + '\n')
+            for  input, target in zip(input_texts, target_texts):
+                f_source.write(input + '\n')
+                f_target.write(target + '\n')
 
 
     path_loader = './spa-eng/train'
@@ -59,12 +60,32 @@ def prepareData(data_path, batch_inici, batch_final):
         batch_size=batch_size,
         shuffle=True,
         seed=None,
-        validation_split=0.01,
+        validation_split=None,
         subset=None,
     )
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
+    #encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(dataloader, input_characters, target_characters, input_texts,target_texts)
+
+    dataloader_encoded = create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size)
+
     
-    return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length
+    return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length, dataloader_encoded
+
+def create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size):
+    # Create TensorFlow datasets from the encoded data arrays
+    encoder_dataset = tf.data.Dataset.from_tensor_slices(encoder_input_data)
+    decoder_input_dataset = tf.data.Dataset.from_tensor_slices(decoder_input_data)
+    decoder_target_dataset = tf.data.Dataset.from_tensor_slices(decoder_target_data)
+
+    # Combine the datasets into a single dataset
+    dataset = tf.data.Dataset.zip((encoder_dataset, decoder_input_dataset, decoder_target_dataset))
+
+    # Shuffle and batch the dataset
+    dataset = dataset.shuffle(len(encoder_input_data))
+    dataset = dataset.batch(batch_size)
+
+    return dataset
+
 
 def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
     # We extract the data (Sentence1 \t Sentence 2) from the anki text file
@@ -153,6 +174,50 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
 
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length
     
+# def encodingChar(dataset, input_characters, target_characters, input_texts,target_texts):
+#     # Extract input and target texts from the dataset
+#     input_texts = []
+#     target_texts = []
+#     for inputs, targets in dataset:
+#         input_texts.extend(inputs)
+#         target_texts.extend(targets)
+    
+#     # Get the number of unique characters in the input and target languages
+#     num_encoder_tokens = len(input_characters)
+#     num_decoder_tokens = len(target_characters)
+    
+#     # Determine the maximum sequence lengths for inputs and outputs
+#     max_encoder_seq_length = max([len(txt) for txt in input_texts])
+#     max_decoder_seq_length = max([len(txt) for txt in target_texts])
+    
+#     print('Number of num_encoder_tokens:', num_encoder_tokens)
+#     print('Number of samples:', len(input_texts))
+#     print('Number of unique input tokens:', num_encoder_tokens)
+#     print('Number of unique output tokens:', num_decoder_tokens)
+#     print('Max sequence length for inputs:', max_encoder_seq_length)
+#     print('Max sequence length for outputs:', max_decoder_seq_length)
+    
+#     # Create dictionaries for encoding characters
+#     input_token_index = dict([(char, i) for i, char in enumerate(input_characters)])
+#     target_token_index = dict([(char, i) for i, char in enumerate(target_characters)])
+    
+#     # Initialize the input, target, and decoder target data arrays
+#     encoder_input_data = np.zeros((len(input_texts), max_encoder_seq_length, num_encoder_tokens), dtype='float32')
+#     decoder_input_data = np.zeros((len(input_texts), max_decoder_seq_length, num_decoder_tokens), dtype='float32')
+#     decoder_target_data = np.zeros((len(input_texts), max_decoder_seq_length, num_decoder_tokens), dtype='float32')
+
+#     for i, (input_text, target_text) in enumerate(zip(input_texts, target_texts)):
+#         for t, char in enumerate(input_text):
+#             encoder_input_data[i, t, input_token_index[char]] = 1.
+#         for t, char in enumerate(target_text):
+#             decoder_input_data[i, t, target_token_index[char]] = 1.
+#             if t > 0:
+#                 decoder_target_data[i, t - 1, target_token_index[char]] = 1.
+
+#     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index, num_encoder_tokens, num_decoder_tokens, max_encoder_seq_length
+
+
+
 def modelTranslation2(num_encoder_tokens,num_decoder_tokens):
 # We crete the model 1 encoder(gru) + 1 decode (gru) + 1 Dense layer + softmax
 
@@ -198,49 +263,35 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 
     return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
 
-def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data):
+def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data, dataloader_encoded):
 # We load tensorboad
 # We train the model
     LOG_PATH="./log"
-    
-    num_smp = 30000
-    total_rows = len(encoder_input_data)
-    iters_per_epoch = total_rows // num_smp
-    
         
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
     #categorical_crossentropy:  loss between the true classes and predicted classes. The labels are given in an one_hot format.
-    
-    # for epoch in range(epochs):
-    #     for step in range(iters_per_epoch):
-    #         start_index = step * batch_size
-    #         end_index = (step + 1) * batch_size
-    #         encoder_input_batch = encoder_input_data[start_index:end_index]
-    #         decoder_input_batch = decoder_input_data[start_index:end_index]
-    #         decoder_target_batch = decoder_target_data[start_index:end_index]
+      
+    # model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
+    #             batch_size=batch_size,
+    #             epochs=epochs,
+    #             validation_split=0.01,
+    #             callbacks = [tbCallBack])
 
-    #         model.fit([encoder_input_batch, decoder_input_batch], decoder_target_batch,
-    #                   batch_size=batch_size,
-    #                   epochs=1,
-    #                   validation_split=0.01,
-    #                   callbacks=[tbCallBack],
-    #                   verbose=2)
-        
-        
-    model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
-                batch_size=batch_size,
-                epochs=epochs,
-                validation_split=0.01,
-                callbacks = [tbCallBack])
-
+    model.fit(
+    dataloader_encoded,
+    batch_size=batch_size,
+    epochs=epochs,
+    #validation_split=0.01,
+    callbacks=[tbCallBack]
+)
     
     #Retrieve loss and accuracy from the history object    
     loss = model.history.history['loss'][0]
     accuracy = model.history.history['accuracy'][0] 
     # log metrics to wandb
-    wandb.log({"accuracy": accuracy, "loss": loss})
+    #wandb.log({"accuracy": accuracy, "loss": loss})
     
 
 def generateInferenceModel(encoder_inputs, encoder_states,input_token_index,target_token_index,decoder_lstm,decoder_inputs,decoder_dense):
