@@ -45,6 +45,23 @@ def prepareData(data_path, batch_inici, batch_final):
     input_characters,target_characters,input_texts,target_texts=extractChar(data_path, batch_inici, batch_final)
     #es bidireccional per tant li passem com a 4 argument True si volem que faci la traduccio al reves
     
+
+    with open('./spa-eng/train/source/source.txt', 'w') as f_source:
+        with open('./spa-eng/train/target/target.txt', 'w') as f_target:
+            f_source.write(input_texts + '\n')
+            f_target.write(target_texts + '\n')
+
+
+    path_loader = './spa-eng/train'
+
+    dataloader = tf.keras.preprocessing.text_dataset_from_directory(
+        path_loader,
+        batch_size=batch_size,
+        shuffle=True,
+        seed=None,
+        validation_split=0.01,
+        subset=None,
+    )
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
     
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length

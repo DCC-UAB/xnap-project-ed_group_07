@@ -1,4 +1,5 @@
 from util import *
+import os
 
 batch_inici = 0
 batch_final = num_samples
@@ -7,39 +8,7 @@ lines = open(data_path).read().split('\n')
 batches = ((len(lines)-1)//num_samples)+1 #afegim un batch més per als que sobren
 #tokens no depen de les dades ino de dataset
 #guardar fora dsp i model transl fora?
-
-
-with open('spa.txt', 'r') as f:
-   
-    with open('source.txt', 'w') as f_source:
-        with open('target.txt', 'w') as f_target:
-            for line in f:
-                parts = line.strip().split(' ')
-                source = parts[0]
-                target = parts[1]
-                f_source.write(source + '\n')
-                f_target.write(target + '\n')
-path_loader_source = './spa-eng/train/source'
-path_loader_target = './spa-eng/train/target'
-
-source_dataloader = tf.keras.preprocessing.text_dataset_from_directory(
-    path_loader_source,
-    batch_size=batch_size,
-    shuffle=True,
-    seed=None,
-    validation_split=0.01,
-    subset=None,
-)
-
-target_dataloader = tf.keras.preprocessing.text_dataset_from_directory(
-    path_loader_target,
-    batch_size=batch_size,
-    shuffle=True,
-    seed=None,
-    validation_split=0.01,
-    subset=None,
-)
-    
+       
     
 #load the data and format  them for being processed
 encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length=prepareData(data_path, batch_inici, batch_final)
