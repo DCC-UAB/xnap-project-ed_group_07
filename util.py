@@ -14,13 +14,14 @@ from keras.utils.vis_utils import plot_model
 batch_size = 128  # Batch size for training.
 epochs = 10  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
-num_samples = 30000 #145437  # Number of samples to train on.
+num_samples =  90000#145437  # Number of samples to train on.
 # Path to the data txt file on disk.
 #data_path = './cat-eng/cat.txt' # to replace by the actual dataset name
 # el dataset en catala nomes te 1336 linies
 data_path = './spa-eng/spa.txt' #139705
 encoder_path='encoder_modelPredTranslation.h5'
 decoder_path='decoder_modelPredTranslation.h5'
+validation_split = 0.1
 #LOG_PATH='/home/alumne/projecte/xnap-project-ed_group_07/log' #quan estem en remot
 LOG_PATH='./log' #quan estem en local
 
@@ -47,48 +48,49 @@ def prepareData(data_path, batch_inici, batch_final):
     #es bidireccional per tant li passem com a 4 argument True si volem que faci la traduccio al reves
     
 
-    with open('./spa-eng/train/source/source.txt', 'w') as f_source:
-        with open('./spa-eng/train/target/target.txt', 'w') as f_target:
-            for  input, target in zip(input_texts, target_texts):
-                f_source.write(input + '\n')
-                f_target.write(target + '\n')
+    # with open('./spa-eng/train/source/source.txt', 'w') as f_source:
+    #     with open('./spa-eng/train/target/target.txt', 'w') as f_target:
+    #         for  input, target in zip(input_texts, target_texts):
+    #             f_source.write(input + '\n')
+    #             f_target.write(target + '\n')
 
 
-    path_loader = './spa-eng/train'
+    # path_loader = './spa-eng/train'
 
-    dataloader = tf.keras.preprocessing.text_dataset_from_directory(
-        path_loader,
-        batch_size=batch_size,
-        shuffle=True,
-        seed=None,
-        validation_split=None,
-        subset=None,
-    )
+    # dataloader = tf.keras.preprocessing.text_dataset_from_directory(
+    #     path_loader,
+    #     batch_size=batch_size,
+    #     shuffle=True,
+    #     seed=None,
+    #     validation_split=None,
+    #     subset=None,
+    # )
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
     #encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(dataloader, input_characters, target_characters, input_texts,target_texts)
     
-    dataloader_encoded_input, dataloader_encoded_target = create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size)
+    encoder_dataset, decoder_input_dataset, decoder_target_dataset  = create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size)
     
-    return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length, dataloader_encoded_input, dataloader_encoded_target
+    return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length, encoder_dataset, decoder_input_dataset, decoder_target_dataset
 
 def create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size):
     # Create TensorFlow datasets from the encoded data arrays
-    print("+++++++++++++")
     encoder_dataset = tf.data.Dataset.from_tensor_slices(encoder_input_data)
     decoder_input_dataset = tf.data.Dataset.from_tensor_slices(decoder_input_data)
     decoder_target_dataset = tf.data.Dataset.from_tensor_slices(decoder_target_data)
     
     # Combine the datasets into a single dataset
     
-    dataset_input = tf.data.Dataset.zip((encoder_dataset, decoder_input_dataset))
-    dataset_target = tf.data.Dataset.zip((decoder_target_dataset))
+    #dataset_input = tf.data.Dataset.zip((encoder_dataset, decoder_input_dataset))
+    #dataset_target = tf.data.Dataset.zip((decoder_target_dataset))
 
     # Shuffle and batch the dataset
     #dataset = dataset.shuffle(len(encoder_input_data))
-    dataset_input = dataset_input.batch(batch_size)
-    dataset_target = dataset_target.batch(batch_size)
+    
+    #dataset_input = dataset_input.batch(batch_size)
+    #dataset_target = dataset_target.batch(batch_size)
 
-    return dataset_input, dataset_target
+    #return dataset_input, dataset_target
+    return encoder_dataset, decoder_input_dataset, decoder_target_dataset 
 
 
 def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
@@ -268,7 +270,8 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 
     return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
 
-def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data, dataloader_encoded_input, dataloader_encoded_target):
+#def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data, dataloader_encoded_input, dataloader_encoded_target):
+def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data, encoder_dataset, decoder_input_dataset, decoder_target_dataset):
 # We load tensorboad
 # We train the model
     LOG_PATH="./log"
@@ -284,13 +287,16 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
     #             validation_split=0.01,
     #             callbacks = [tbCallBack])
 
-    model.fit(
-    [dataloader_encoded_input], dataloader_encoded_target,
-    batch_size=batch_size,
-    epochs=epochs,
-    #validation_split=0.01,
-    callbacks=[tbCallBack]
-)
+
+    train_dataset = tf.data.Dataset.zip((encoder_dataset, decoder_input_dataset))
+    train_dataset = tf.data.Dataset.zip((train_dataset,  decoder_target_dataset))
+    train_dataset = train_dataset.batch(batch_size)
+
+    validation_dataset = train_dataset.take(int(validation_split * len(train_dataset)))
+    train_dataset = train_dataset.skip(int(validation_split * len(train_dataset)))
+
+    model.fit(train_dataset, batch_size=batch_size, epochs=epochs, validation_data=validation_dataset, callbacks=[tbCallBack])
+
     
     #Retrieve loss and accuracy from the history object    
     loss = model.history.history['loss'][0]
