@@ -9,6 +9,7 @@ import _pickle as pickle
 import wandb
 import random
 import tensorflow as tf
+from keras.utils.vis_utils import plot_model
 
 batch_size = 128  # Batch size for training.
 epochs = 10  # Number of epochs to train for.
@@ -65,26 +66,29 @@ def prepareData(data_path, batch_inici, batch_final):
     )
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
     #encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(dataloader, input_characters, target_characters, input_texts,target_texts)
-
-    dataloader_encoded = create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size)
-
     
-    return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length, dataloader_encoded
+    dataloader_encoded_input, dataloader_encoded_target = create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size)
+    
+    return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length, dataloader_encoded_input, dataloader_encoded_target
 
 def create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size):
     # Create TensorFlow datasets from the encoded data arrays
+    print("+++++++++++++")
     encoder_dataset = tf.data.Dataset.from_tensor_slices(encoder_input_data)
     decoder_input_dataset = tf.data.Dataset.from_tensor_slices(decoder_input_data)
     decoder_target_dataset = tf.data.Dataset.from_tensor_slices(decoder_target_data)
-
+    
     # Combine the datasets into a single dataset
-    dataset = tf.data.Dataset.zip((encoder_dataset, decoder_input_dataset, decoder_target_dataset))
+    
+    dataset_input = tf.data.Dataset.zip((encoder_dataset, decoder_input_dataset))
+    dataset_target = tf.data.Dataset.zip((decoder_target_dataset))
 
     # Shuffle and batch the dataset
-    dataset = dataset.shuffle(len(encoder_input_data))
-    dataset = dataset.batch(batch_size)
+    #dataset = dataset.shuffle(len(encoder_input_data))
+    dataset_input = dataset_input.batch(batch_size)
+    dataset_target = dataset_target.batch(batch_size)
 
-    return dataset
+    return dataset_input, dataset_target
 
 
 def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
@@ -260,10 +264,11 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 
     model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
     
+    plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 
     return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
 
-def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data, dataloader_encoded):
+def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data, dataloader_encoded_input, dataloader_encoded_target):
 # We load tensorboad
 # We train the model
     LOG_PATH="./log"
@@ -280,7 +285,7 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
     #             callbacks = [tbCallBack])
 
     model.fit(
-    dataloader_encoded,
+    [dataloader_encoded_input], dataloader_encoded_target,
     batch_size=batch_size,
     epochs=epochs,
     #validation_split=0.01,
