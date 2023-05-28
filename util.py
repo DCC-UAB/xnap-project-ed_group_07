@@ -12,7 +12,7 @@ import tensorflow as tf
 from keras.utils.vis_utils import plot_model
 
 batch_size = 128  # Batch size for training.
-epochs = 10  # Number of epochs to train for.
+epochs = 3  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
 num_samples =  90000#145437  # Number of samples to train on.
 # Path to the data txt file on disk.
@@ -25,21 +25,25 @@ validation_split = 0.1
 #LOG_PATH='/home/alumne/projecte/xnap-project-ed_group_07/log' #quan estem en remot
 LOG_PATH='./log' #quan estem en local
 
-#API
+validation_split = 0.1
+learning_rate = 0.02
+name = "spanish prova optimizer"
 
+#GRÀFIQUES
 # start a new wandb run to track this script
-# wandb.init(
-#     # set the wandb project where this run will be logged
-#     project="Translation",
-    
-#     # track hyperparameters and run metadata
-#     config={
-#     "learning_rate": 0.02,
-#     "architecture": "LSTM",
-#     "dataset": "spa-eng/spa.txt",
-#     "epochs": 2,
-#     }
-# )
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="Translation",
+    # track hyperparameters and run metadata
+    config={
+    "learning_rate": learning_rate,
+    "architecture": "LSTM",
+    "dataset": data_path,
+    "epochs": epochs,
+    },
+    name = name
+)
+
 
 
 def prepareData(data_path, batch_inici, batch_final):
@@ -278,7 +282,12 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
         
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
+    #PROVAAAAAAAAAAAAAAAAAAAAAAA
+    #CANVIAR 'rmsprop' per adam model.compile(optimizer="Adam", loss="mse", metrics=["mae"]) mse no te sentit
+    optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,epsilon=1e-9)
+    #optimizer = 'rmsprop'
+
+    model.compile(optimizer=optimizer, loss='categorical_crossentropy',metrics=['accuracy'])
     #categorical_crossentropy:  loss between the true classes and predicted classes. The labels are given in an one_hot format.
       
     # model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
@@ -299,10 +308,12 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
 
     
     #Retrieve loss and accuracy from the history object    
-    loss = model.history.history['loss'][0]
-    accuracy = model.history.history['accuracy'][0] 
+    #loss = model.history.history['loss'][0]
+    #accuracy = model.history.history['accuracy'][0] 
+    loss, accuracy = model.evaluate(validation_dataset, callbacks=[tbCallBack])
+
     # log metrics to wandb
-    #wandb.log({"accuracy": accuracy, "loss": loss})
+    wandb.log({"accuracy": accuracy, "loss": loss})
     
 
 def generateInferenceModel(encoder_inputs, encoder_states,input_token_index,target_token_index,decoder_lstm,decoder_inputs,decoder_dense):
