@@ -7,6 +7,7 @@ from keras.callbacks import TensorBoard
 import numpy as np
 import _pickle as pickle
 import wandb
+from wandb.keras import WandbCallback
 import random
 import tensorflow as tf
 from keras.utils.vis_utils import plot_model
@@ -27,7 +28,7 @@ LOG_PATH='./log' #quan estem en local
 
 validation_split = 0.1
 learning_rate = 0.02
-name = "spanish prova optimizer"
+name = "spanish acc grafica"
 
 #GRÀFIQUES
 # start a new wandb run to track this script
@@ -304,13 +305,13 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
     validation_dataset = train_dataset.take(int(validation_split * len(train_dataset)))
     train_dataset = train_dataset.skip(int(validation_split * len(train_dataset)))
 
-    model.fit(train_dataset, batch_size=batch_size, epochs=epochs, validation_data=validation_dataset, callbacks=[tbCallBack])
-
+    #history = model.fit(train_dataset, batch_size=batch_size, epochs=epochs, validation_data=validation_dataset, callbacks=[tbCallBack])
+    history = model.fit(train_dataset, batch_size=batch_size, epochs=epochs, validation_data=validation_dataset, callbacks=[WandbCallback()])
     
     #Retrieve loss and accuracy from the history object    
-    #loss = model.history.history['loss'][0]
-    #accuracy = model.history.history['accuracy'][0] 
-    loss, accuracy = model.evaluate(validation_dataset, callbacks=[tbCallBack])
+    loss = history.history['loss']
+    accuracy = history.history['accuracy']
+    #loss, accuracy = model.evaluate(validation_dataset, callbacks=[tbCallBack])
 
     # log metrics to wandb
     wandb.log({"accuracy": accuracy, "loss": loss})
