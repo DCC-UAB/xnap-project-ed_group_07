@@ -11,6 +11,7 @@ from wandb.keras import WandbCallback
 import random
 import tensorflow as tf
 from keras.utils.vis_utils import plot_model
+import numpy as np
 
 batch_size = 128  # Batch size for training.
 epochs = 10  # Number of epochs to train for.
@@ -119,15 +120,33 @@ def prepareData(data_path, batch_inici, batch_final):
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
     #encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(dataloader, input_characters, target_characters, input_texts,target_texts)
     
-    encoder_dataset, decoder_input_dataset, decoder_target_dataset  = create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size)
+    # executar si no s'ha fet el dataloader encara
+    # create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size)
+    encoder_dataset = np.load('ENCODED.npy')
+    encoder_dataset = tf.data.Dataset.from_tensor_slices(encoder_dataset)
+
+    decoder_input_dataset = np.load('INPUT.npy')
+    decoder_input_dataset = tf.data.Dataset.from_tensor_slices(decoder_input_dataset)
+
+    decoder_target_dataset = np.load('TARGET.npy')
+    decoder_target_dataset = tf.data.Dataset.from_tensor_slices(decoder_target_dataset)
+
     
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length, encoder_dataset, decoder_input_dataset, decoder_target_dataset
 
 def create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size):
     # Create TensorFlow datasets from the encoded data arrays
     encoder_dataset = tf.data.Dataset.from_tensor_slices(encoder_input_data)
+    encoder_dataset = np.array(list(encoder_dataset.as_numpy_iterator()))
+    np.save('ENCODED.npy', encoder_dataset)
+
     decoder_input_dataset = tf.data.Dataset.from_tensor_slices(decoder_input_data)
+    decoder_input_dataset = np.array(list(decoder_input_dataset.as_numpy_iterator()))
+    np.save('INPUT.npy', decoder_input_dataset)
+
     decoder_target_dataset = tf.data.Dataset.from_tensor_slices(decoder_target_data)
+    decoder_target_dataset = np.array(list(decoder_target_dataset.as_numpy_iterator()))
+    np.save('TARGET.npy', decoder_target_dataset)
     
     # Combine the datasets into a single dataset
     
@@ -140,8 +159,12 @@ def create_data_loader(encoder_input_data, decoder_input_data, decoder_target_da
     #dataset_input = dataset_input.batch(batch_size)
     #dataset_target = dataset_target.batch(batch_size)
 
+
+    # decoder_input_dataset.save('DECODEDINPUT.h5')
+    # decoder_target_dataset.save('DECODEDTARGET.h5')
+
     #return dataset_input, dataset_target
-    return encoder_dataset, decoder_input_dataset, decoder_target_dataset 
+    # return decoder_input_dataset, decoder_target_dataset 
 
 
 def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
@@ -329,7 +352,6 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
         
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
-    #PROVAAAAAAAAAAAAAAAAAAAAAAA
     #CANVIAR 'rmsprop' per adam model.compile(optimizer="Adam", loss="mse", metrics=["mae"]) mse no te sentit
     optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,epsilon=1e-9)
     #optimizer = 'rmsprop'
