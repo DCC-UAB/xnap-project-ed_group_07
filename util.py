@@ -11,7 +11,6 @@ from wandb.keras import WandbCallback
 import random
 import tensorflow as tf
 from keras.utils.vis_utils import plot_model
-import numpy as np
 
 batch_size = 128  # Batch size for training.
 epochs = 10  # Number of epochs to train for.
@@ -23,13 +22,14 @@ num_samples =  90000 #145437  # Number of samples to train on.
 data_path = './spa-eng/spa.txt' #139705
 encoder_path='encoder_modelPredTranslation.h5'
 decoder_path='decoder_modelPredTranslation.h5'
-validation_split = 0.1
+validation_split = 0.2
 #LOG_PATH='/home/alumne/projecte/xnap-project-ed_group_07/log' #quan estem en remot
 LOG_PATH='./log' #quan estem en local
 
 validation_split = 0.1
-learning_rate = 0.02
-name = "spanish acc grafica"
+learning_rate = 0.0001
+name = "prova 2"
+opt = 'rmsprop'
 
 # # DEALING WITH BLEU METRIC FUNCTION
 # from nltk.translate.bleu_score import sentence_bleu
@@ -79,18 +79,57 @@ name = "spanish acc grafica"
 
 #GRÀFIQUES
 # start a new wandb run to track this script
-wandb.init(
-    # set the wandb project where this run will be logged
-    project="Translation",
-    # track hyperparameters and run metadata
-    config={
+config_defaults = {
+    "batch_size": batch_size,
     "learning_rate": learning_rate,
     "architecture": "LSTM",
     "dataset": data_path,
     "epochs": epochs,
-    },
-    name = name
+    "latent_dim": latent_dim,
+    "cell_type": 'LSTM',
+    "optimizer":  opt,
+    "lstm_layers": 1
+    }
+
+
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="Translation",
+    # track hyperparameters and run metadata
+    config=config_defaults,
+    name = name,
+    allow_val_change=True
 )
+
+sweep_config = {
+  'method': 'random', 
+  #'metric': {
+        #'name': 'accuracy',
+        #'goal': 'maximize'
+      #'name': 'val_loss',
+      #'goal': 'minimize'},
+  'early_terminate':{
+      'type': 'hyperband',
+      'min_iter': 5
+  },
+  'parameters': { 
+      'batch_size': {
+          'values': [16, 128, 256]
+      },
+      'learning_rate':{
+          'values': [0.005, 0.0005, 0.2]
+      },
+      'latent_dim':{
+            'values':[16,256,512]
+  },
+      'cell_type': 
+          {'values': ['LSTM', 'GRU']
+    },   
+      'optimizer': 
+          {'values': ['adam', 'rmsprop']}
+}}
+
+#sweep_id = wandb.sweep(sweep_config,entity="aballara3", project="Translation")
 
 
 
@@ -120,34 +159,17 @@ def prepareData(data_path, batch_inici, batch_final):
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
     #encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(dataloader, input_characters, target_characters, input_texts,target_texts)
     
-    # executar si no s'ha fet el dataloader encara
-    # create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size)
-    encoder_dataset = np.load('ENCODED.npy')
-    encoder_dataset = tf.data.Dataset.from_tensor_slices(encoder_dataset)
-
-    decoder_input_dataset = np.load('INPUT.npy')
-    decoder_input_dataset = tf.data.Dataset.from_tensor_slices(decoder_input_dataset)
-
-    decoder_target_dataset = np.load('TARGET.npy')
-    decoder_target_dataset = tf.data.Dataset.from_tensor_slices(decoder_target_dataset)
-
+    encoder_dataset, decoder_input_dataset, decoder_target_dataset  = create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, wandb.config.batch_size)
     
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length, encoder_dataset, decoder_input_dataset, decoder_target_dataset
 
 def create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size):
     # Create TensorFlow datasets from the encoded data arrays
+    #with tf.device("CPU"):
     encoder_dataset = tf.data.Dataset.from_tensor_slices(encoder_input_data)
-    encoder_dataset = np.array(list(encoder_dataset.as_numpy_iterator()))
-    np.save('ENCODED.npy', encoder_dataset)
-
     decoder_input_dataset = tf.data.Dataset.from_tensor_slices(decoder_input_data)
-    decoder_input_dataset = np.array(list(decoder_input_dataset.as_numpy_iterator()))
-    np.save('INPUT.npy', decoder_input_dataset)
-
     decoder_target_dataset = tf.data.Dataset.from_tensor_slices(decoder_target_data)
-    decoder_target_dataset = np.array(list(decoder_target_dataset.as_numpy_iterator()))
-    np.save('TARGET.npy', decoder_target_dataset)
-    
+        
     # Combine the datasets into a single dataset
     
     #dataset_input = tf.data.Dataset.zip((encoder_dataset, decoder_input_dataset))
@@ -159,12 +181,8 @@ def create_data_loader(encoder_input_data, decoder_input_data, decoder_target_da
     #dataset_input = dataset_input.batch(batch_size)
     #dataset_target = dataset_target.batch(batch_size)
 
-
-    # decoder_input_dataset.save('DECODEDINPUT.h5')
-    # decoder_target_dataset.save('DECODEDTARGET.h5')
-
     #return dataset_input, dataset_target
-    # return decoder_input_dataset, decoder_target_dataset 
+    return encoder_dataset, decoder_input_dataset, decoder_target_dataset 
 
 
 def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
@@ -302,12 +320,12 @@ def modelTranslation2(num_encoder_tokens,num_decoder_tokens):
 # We crete the model 1 encoder(gru) + 1 decode (gru) + 1 Dense layer + softmax
 
     encoder_inputs = Input(shape=(None, num_encoder_tokens))
-    encoder = GRU(latent_dim, return_state=True)
+    encoder = GRU(wandb.config.latent_dim, return_state=True)
     encoder_outputs, state_h = encoder(encoder_inputs)
     encoder_states = state_h
 
     decoder_inputs = Input(shape=(None, num_decoder_tokens))
-    decoder_gru = GRU(latent_dim, return_sequences=True)
+    decoder_gru = GRU(wandb.config.latent_dim, return_sequences=True)
     decoder_outputs = decoder_gru(decoder_inputs, initial_state=state_h)
     decoder_dense = Dense(num_decoder_tokens, activation='softmax')
     decoder_outputs = decoder_dense(decoder_outputs)
@@ -317,32 +335,73 @@ def modelTranslation2(num_encoder_tokens,num_decoder_tokens):
     
 def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 # We crete the model 1 encoder(lstm) + 1 decode (LSTM) + 1 Dense layer + softmax
-    
-    encoder_inputs = Input(shape=(None, num_encoder_tokens)) 
-    # input tensor to the encoder. It has a shape of (None, num_encoder_tokens), where None represents the variable-length 
-    # sequence and num_encoder_tokens is the number of tokens in the input lenguage.
-    encoder = LSTM(latent_dim, return_state=True) 
-    # latent_dim: Latent dimensionality of the encoding space.
-    # encoder LSTM layer is created with latent_dim units
-    encoder_outputs, state_h, state_c = encoder(encoder_inputs) 
-    # encoder_outputs: output sequence from the encoder LSTM layer
-    # state_h and state_c: final hidden state and cell state of the encoder.
-    encoder_states = [state_h, state_c]
-    # will be used as the initial state for the decoder
-    
-    decoder_inputs = Input(shape=(None, num_decoder_tokens))
-    decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
-    decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
-                                            initial_state=encoder_states)
 
-    decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-    decoder_outputs = decoder_dense(decoder_outputs)
-
-    model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+    if wandb.config.cell_type == 'LSTM':
     
-    plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+        encoder_inputs = Input(shape=(None, num_encoder_tokens)) 
+        # input tensor to the encoder. It has a shape of (None, num_encoder_tokens), where None represents the variable-length 
+        # sequence and num_encoder_tokens is the number of tokens in the input lenguage.
+        encoder = LSTM(wandb.config.latent_dim, return_state=True) 
+        # latent_dim: Latent dimensionality of the encoding space.
+        # encoder LSTM layer is created with latent_dim units
+        encoder_outputs, state_h, state_c = encoder(encoder_inputs) 
+        # encoder_outputs: output sequence from the encoder LSTM layer
+        # state_h and state_c: final hidden state and cell state of the encoder.
+        encoder_states = [state_h, state_c]
+        # will be used as the initial state for the decoder
+        
+        decoder_inputs = Input(shape=(None, num_decoder_tokens))
+        decoder_lstm = LSTM(wandb.config.latent_dim, return_sequences=True, return_state=True)
+        decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
+                                                initial_state=encoder_states)
 
-    return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
+        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+        decoder_outputs = decoder_dense(decoder_outputs)
+
+        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+        
+        plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+
+        return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
+    
+
+        # encoder_inputs = Input(shape=(None, num_encoder_tokens))
+        
+        # encoder = LSTM(wandb.config.latent_dim, return_sequences=True, return_state=True)
+        # encoder_outputs, state_h, state_c = encoder(encoder_inputs)
+        # encoder_states = [state_h, state_c]
+        
+        # decoder_inputs = Input(shape=(None, num_decoder_tokens))
+        # decoder_lstm_layers = []
+        # decoder_outputs = decoder_inputs
+        
+        # for _ in range(wandb.config.lstm_layers):
+        #     decoder_lstm = LSTM(wandb.config.latent_dim, return_sequences=True, return_state=True)
+        #     decoder_outputs, _, _ = decoder_lstm(decoder_outputs, initial_state=encoder_states)
+        #     decoder_lstm_layers.append(decoder_lstm)
+        
+        # decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+        # decoder_outputs = decoder_dense(decoder_outputs)
+        
+        # model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+        
+        # return model, decoder_outputs, encoder_inputs, encoder_states, decoder_inputs, decoder_lstm_layers, decoder_dense
+
+    
+    elif wandb.config.cell_type =='GRU':
+        encoder_inputs = Input(shape=(None, num_encoder_tokens))
+        encoder = GRU(wandb.config.latent_dim, return_state=True)
+        encoder_outputs, state_h = encoder(encoder_inputs)
+        encoder_states = state_h
+
+        decoder_inputs = Input(shape=(None, num_decoder_tokens))
+        decoder_gru = GRU(wandb.config.latent_dim, return_sequences=True)
+        decoder_outputs = decoder_gru(decoder_inputs, initial_state=state_h)
+        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+        decoder_outputs = decoder_dense(decoder_outputs)
+        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+    
+        return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_gru,decoder_dense
 
 #def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data, dataloader_encoded_input, dataloader_encoded_target):
 def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data, encoder_dataset, decoder_input_dataset, decoder_target_dataset):
@@ -352,13 +411,13 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
         
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
     # Run training
+    #PROVAAAAAAAAAAAAAAAAAAAAAAA
     #CANVIAR 'rmsprop' per adam model.compile(optimizer="Adam", loss="mse", metrics=["mae"]) mse no te sentit
-    optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,epsilon=1e-9)
+    #optimizer = tf.keras.optimizers.Adam(wandb.config.learning_rate)
     #optimizer = 'rmsprop'
 
-    model.compile(optimizer=optimizer, loss='categorical_crossentropy',metrics=['accuracy'])
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
-    # model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=[BLEU])
+    #model.compile(optimizer=optimizer, loss='categorical_crossentropy',metrics=['accuracy'])
+    model.compile(optimizer=wandb.config.optimizer, loss='categorical_crossentropy',metrics=['accuracy'])
     #categorical_crossentropy:  loss between the true classes and predicted classes. The labels are given in an one_hot format.
       
     # model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
@@ -370,45 +429,74 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
 
     train_dataset = tf.data.Dataset.zip((encoder_dataset, decoder_input_dataset))
     train_dataset = tf.data.Dataset.zip((train_dataset,  decoder_target_dataset))
-    train_dataset = train_dataset.batch(batch_size)
+    train_dataset = train_dataset.batch(wandb.config.batch_size)
 
     validation_dataset = train_dataset.take(int(validation_split * len(train_dataset)))
     train_dataset = train_dataset.skip(int(validation_split * len(train_dataset)))
 
     #history = model.fit(train_dataset, batch_size=batch_size, epochs=epochs, validation_data=validation_dataset, callbacks=[tbCallBack])
-    history = model.fit(train_dataset, batch_size=batch_size, epochs=epochs, validation_data=validation_dataset, callbacks=[WandbCallback()])
+    model.fit(train_dataset, batch_size=wandb.config.batch_size, epochs=wandb.config.epochs, validation_data=validation_dataset, callbacks=[WandbCallback()])
+    #history = model.fit(train_dataset, batch_size=wandb.config.batch_size, epochs=wandb.config.epochs, validation_data=validation_dataset, callbacks=[WandbCallback()])
     
     #Retrieve loss and accuracy from the history object    
-    loss = history.history['loss']
-    accuracy = history.history['accuracy']
+    #loss = history.history['loss']
+    #accuracy = history.history['accuracy']
     #loss, accuracy = model.evaluate(validation_dataset, callbacks=[tbCallBack])
+    
+    # Evaluate    
+    loss, accuracy = model.evaluate(validation_dataset, callbacks=[WandbCallback()])
+    wandb.log({'Test Error Rate': round((1-accuracy)*100, 2)}) # wandb.log to track custom metrics
+
 
     # log metrics to wandb
-    wandb.log({"accuracy": accuracy, "loss": loss})
+    #wandb.log({"accuracy": accuracy, "loss": loss})
     
 
 def generateInferenceModel(encoder_inputs, encoder_states,input_token_index,target_token_index,decoder_lstm,decoder_inputs,decoder_dense):
 # Once the model is trained, we connect the encoder/decoder and we create a new model
 # Finally we save everything
-    encoder_model = Model(encoder_inputs, encoder_states)
+    if wandb.config.cell_type == 'LSTM':
+        encoder_model = Model(encoder_inputs, encoder_states)
 
-    decoder_state_input_h = Input(shape=(latent_dim,))
-    decoder_state_input_c = Input(shape=(latent_dim,))
-    decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
-    decoder_outputs, state_h, state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
-    decoder_states = [state_h, state_c]
-    decoder_outputs = decoder_dense(decoder_outputs)
-    decoder_model = Model([decoder_inputs] + decoder_states_inputs,[decoder_outputs] + decoder_states)
+        decoder_state_input_h = Input(shape=(wandb.config.latent_dim,))
+        decoder_state_input_c = Input(shape=(wandb.config.latent_dim,))
+        decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
+        decoder_outputs, state_h, state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
+        decoder_states = [state_h, state_c]
+        decoder_outputs = decoder_dense(decoder_outputs)
+        decoder_model = Model([decoder_inputs] + decoder_states_inputs,[decoder_outputs] + decoder_states)
+        # Reverse-lookup token index to decode sequences back to
+        # something readable.
+        reverse_input_char_index = dict(
+            (i, char) for char, i in input_token_index.items())
+        reverse_target_char_index = dict(
+            (i, char) for char, i in target_token_index.items())
+        encoder_model.save(encoder_path)
+        decoder_model.save(decoder_path)
+        return encoder_model,decoder_model,reverse_target_char_index
+    
+    elif wandb.config.cell_type == 'GRU':
+        encoder_model = Model(encoder_inputs, encoder_states)
 
-    # Reverse-lookup token index to decode sequences back to
-    # something readable.
-    reverse_input_char_index = dict(
-        (i, char) for char, i in input_token_index.items())
-    reverse_target_char_index = dict(
-        (i, char) for char, i in target_token_index.items())
-    encoder_model.save(encoder_path)
-    decoder_model.save(decoder_path)
-    return encoder_model,decoder_model,reverse_target_char_index
+        decoder_state_input_h = Input(shape=(wandb.config.latent_dim,))
+        #decoder_state_input_c = Input(shape=(wandb.config.latent_dim,))
+        decoder_states_inputs = [decoder_state_input_h]
+        #decoder_outputs, state_h = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
+        decoder_outputs, state_h = GRU(wandb.config.latent_dim, return_sequences=True, return_state=True)(decoder_inputs, initial_state=decoder_states_inputs[0])
+        decoder_states = [state_h]
+        decoder_outputs = decoder_dense(decoder_outputs)
+        decoder_model = Model([decoder_inputs] + decoder_states_inputs,[decoder_outputs] + decoder_states)
+
+        # Reverse-lookup token index to decode sequences back to
+        # something readable.
+        reverse_input_char_index = dict(
+            (i, char) for char, i in input_token_index.items())
+        reverse_target_char_index = dict(
+            (i, char) for char, i in target_token_index.items())
+        encoder_model.save(encoder_path)
+        decoder_model.save(decoder_path)
+        return encoder_model,decoder_model,reverse_target_char_index
+        
 
 def loadEncoderDecoderModel():
 # We load the encoder model and the decoder model and their respective weights
@@ -480,4 +568,5 @@ def getChar2encoding(filename):
     target_token_index = pickle.load(f)
     f.close()
     return input_token_index,max_encoder_seq_length,num_encoder_tokens,reverse_target_char_index,num_decoder_tokens,target_token_index
+
 
