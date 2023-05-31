@@ -25,10 +25,9 @@ with open('DECODED.txt', 'w') as f2:
         input_seq = encoder_input_data
 
         decoded_sentence=decode_sequence(input_seq,encoder_model,decoder_model,num_decoder_tokens,target_token_index,reverse_target_char_index)
-        # f2.write('-')
-        # f2.write(str(sentence))
-        # f2.write(str(decoded_sentence))
-        # f2.write("\n")
+        
+        f2.write(str(sentence),'\t', (str(decoded_sentence)))
+        f2.write("\n")
 
 # BLEU SCORE
 def get_blue_score(filename):
