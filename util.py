@@ -13,7 +13,7 @@ import tensorflow as tf
 from keras.utils.vis_utils import plot_model
 
 batch_size = 128  # Batch size for training.
-epochs = 10  # Number of epochs to train for.
+epochs = 25  # Number of epochs to train for.
 latent_dim = 1024#256  # Latent dimensionality of the encoding space.
 num_samples =  90000 #145437  # Number of samples to train on.
 # Path to the data txt file on disk.
@@ -28,52 +28,8 @@ LOG_PATH='./log' #quan estem en local
 
 validation_split = 0.1
 learning_rate = 0.0001
-name = "prova 2"
-opt = 'rmsprop'
-
-# # DEALING WITH BLEU METRIC FUNCTION
-# from nltk.translate.bleu_score import sentence_bleu
-
-# def BLEU(y_true, y_pred):
-#     # Convert y_true and y_pred to integer tensors
-#     y_true = tf.cast(y_true, tf.float32)
-#     y_pred = tf.cast(tf.argmax(y_pred, axis=-1), tf.float32)
-
-#     # Calculate the maximum n-gram order
-#     max_order = 4
-
-#     # Initialize variables to store the n-gram counts and the brevity penalty
-#     ngram_counts = [0] * max_order
-#     brevity_penalty = 0
-
-#     # Get the batch size
-#     batch_size = tf.shape(y_true)[0]
-
-#     # Iterate over the batch dimension
-#     for i in range(batch_size):
-#         # Calculate the length of the reference and hypothesis sentences
-#         ref_length = tf.reduce_sum(tf.cast(tf.not_equal(y_true[i], 0), tf.float32))
-#         hyp_length = tf.reduce_sum(tf.cast(tf.not_equal(y_pred[i], 0), tf.float32))
-
-#         # Update the brevity penalty
-#         brevity_penalty += tf.math.log(tf.minimum(tf.cast(1.0, tf.float32), tf.cast(hyp_length / ref_length, tf.float32)))
-
-#         # Iterate over the n-gram orders
-#         for n in range(1, max_order + 1):
-#             # Calculate the n-grams for the reference and hypothesis sentences
-#             ref_ngrams = [tuple(y_true[i, j:j+n].numpy()) for j in range(ref_length - n + 1)]
-#             hyp_ngrams = [tuple(y_pred[i, j:j+n].numpy()) for j in range(hyp_length - n + 1)]
-
-#             # Count the number of matching n-grams
-#             matches = sum(1 for ng in hyp_ngrams if ng in ref_ngrams)
-
-#             # Update the n-gram counts
-#             ngram_counts[n-1] += matches / len(hyp_ngrams)
-
-#     # Calculate the final BLEU score
-#     bleu_score = tf.exp(tf.cast(brevity_penalty / batch_size, tf.float32) + tf.reduce_sum([tf.math.log(count) for count in ngram_counts]) / max_order)
-
-#     return bleu_score
+name = "opt SGD"
+opt = "SGD"
 
 #API
 
