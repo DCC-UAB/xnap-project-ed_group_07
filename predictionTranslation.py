@@ -1,3 +1,4 @@
+from nltk.translate.bleu_score import sentence_bleu
 from keras.models import load_model
 from util import *
 import random
@@ -29,3 +30,15 @@ with open('DECODED.txt', 'w') as f2:
         # f2.write(str(decoded_sentence))
         # f2.write("\n")
 
+# BLEU SCORE
+def get_blue_score(filename):
+    with open(str(filename), 'r') as f3:
+        lines = f.readlines()
+    for line in lines:
+        element = line.strip().split('\t')
+        y_true.append(element[0])
+        y_pred.append(element[1])
+
+    for y_true, y_pred in zip(y_true, y_pred):
+        score += int(sentence_bleu(y_true, y_pred))
+    return score
