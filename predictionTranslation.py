@@ -7,10 +7,11 @@ with open('spa-eng/spa.txt') as f:
     lines=f.readlines()
 random.shuffle(lines)
 
-test= lines[:3]
+test= lines[:30]
 with open('DECODED.txt', 'w') as f2:
     for i in test:
-        sentence=str(i[0])
+        sentence=str(i).split('\t')[0]
+        print(sentence)
 
         #num_encoder_tokens 91 77
         #saveChar2encoding("char2encoding.pkl",input_token_index,16,71,reverse_target_char_index,num_decoder_tokens,target_token_index)
@@ -24,6 +25,7 @@ with open('DECODED.txt', 'w') as f2:
 
         decoded_sentence=decode_sequence(input_seq,encoder_model,decoder_model,num_decoder_tokens,target_token_index,reverse_target_char_index)
         # f2.write('-')
-        f2.write(str(sentence))
-        f2.write(str(decoded_sentence))
+        # f2.write(str(sentence))
+        # f2.write(str(decoded_sentence))
+        # f2.write("\n")
 
