@@ -2,7 +2,7 @@
 # XNAP-TRANSLATION MACHINE GROUP
 Write here a short summary about your project. The text must include a short introduction and the targeted goals
 
-Aquest projecte està enfocat a la creació d'un model de màquina automàtica per a la traducció de diferents llengues com seria passar de l'espanyol o l'italia a l'anglés. El principal objectiu d'aquest treball es entendre el funcionament i l'estructura interna d'aquest model de màquina automètica.
+Aquest projecte està enfocat a la creació d'un model de màquina automàtica per a la traducció de diferents llengues com seria passar de l'angñés al català o espanyol. El principal objectiu d'aquest treball es entendre el funcionament i l'estructura interna d'aquest model de màquina automètica per poder fer-ne les modificacions pertinents per arribar a obtenir un millor model, és a dir, que sigui capaç de fer bones traduccions donades unes paraules o frases.
 
 ## Code structure
 You must create as many folders as you consider. You can use the proposed structure or replace it by the one in the base code that you use as starting point. Do not forget to add Markdown files as needed to explain well the code and how to use it.
@@ -23,8 +23,14 @@ python main.py
 
 
 ## Contributors
-Write here the name and UAB mail of the group members
+
+Alba Ballarà    1597532@uab.cat
+
+Berta Carner    1600460@uab.cat
+
+Blanca de Juan  1604365@uab.cat
+
 
 Xarxes Neuronals i Aprenentatge Profund
-Grau de __Write here the name of your estudies (Artificial Intelligence, Data Engineering or Computational Mathematics & Data analyitics)__, 
+Grau de Enginyeria de Dades, 
 UAB, 2023
