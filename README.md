@@ -59,6 +59,7 @@ Un optimitzador és un algoritme que s'utilitza per ajustar els paràmetres d'un
 - AdaGrad: adapta la taxa d'aprenentatge als paràmetres, realitzant actualitzacions més grans per als paràmetres infreqüents i actualitzacions més petites per als freqüents.
 - RMSProp: utilitza una mitjana mòbil del quadrat del gradient per normalitzar el gradient.
 - Adam: Combina RMSProp i el moment emmagatzemant tant la taxa d'aprenentatge individual de RMSProp com el promig ponderat del moment.
+
 ![image](https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101988669/f354a6c1-e8c5-47c5-bd79-0ed28a288049)
 
 **Learning rate**
