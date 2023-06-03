@@ -20,20 +20,14 @@ Aquesta funció es troba al codi en l'arxiu util.py i es anomenada create_data_l
 ## Arquitectura
 Tractem amb models sequence to sequence (Seq2seq) que converteixen seqüències d'un domini a un altre, com seria en el nostre cas de l'anglès al català/espanyol. Son combinacions de dos RNN, un fa d'encoder i l'altre de decoder.
 
-## Optimizer
-
-## Hiperparametres
-
-## Mètriques 
-
 ## Hiperparàmetres
-Per a poder comprovar quins hiperparàmetres són els més òptims per al model, s’ha estudiat a partir de l’accuracy i loss, tant de train com de validation diferents valors per als paràmetres que es mostren a continuació.
+Per a poder comprovar quins hiperparàmetres són els òptims per al model, s’ha estudiat a partir de l’accuracy i la loss, tant del train com del validation, diferents valors per als paràmetres que es mostren a continuació.
 El cas base a partir del qual es van modificant els valors del paràmetre estudiat són els que s’ha trobat que són més adients a la teoria. Són per tant:
 - Epochs:25
 - Optimizer: RMSProp
 - Learning rate: 0,0001
-- Sense Dropout
-- Cell type: GRU
+- Dropout
+- Cell type: LSTM
 
 Estudi del valor que fa una major accuracy de optimitzar:
 **Optimizer**
@@ -66,8 +60,8 @@ GRU (Gated Recurrent Unit) i LSTM (Long Short-Term Memory) són dos tipus de cel
 Al observar les gràfiques tan d’accuracy com de loss, podem veure com aquestes dues s’inicien al mateix punt però ràpidament es diferencien. Per una banda la GRU (en groc) augmenta ràpidament al llarg de les epochs, mentre que LSTM es manté més constant al llarg de l’entrenament en un valor més baix en accuracy i major en loss.
 
 
-
-
+## Mètriques 
+Respecte a les mètriques com hem dit anteriorment, hem utilitzat l'accuracy per efectuar totes les modificacions de hyperparàmetres, ja que es tracta de una mètrica senzilla i fàcil de veure com de bé funciona el nostre model sense necessitat de aprofundir molt. Aquesta mètrica té els seus inconvenients com seria no tenir en compte el context, la fluidesa o la coherencia de la traducció que es fa. Per això hem implementat també la mètrica BLEU (Bilingual Evaluation Understudy). 
 
 ## Resultats
 En aquesta primera imatge hem executat el prediction. Translation amb el model creat amb 2 epochs, batch size 128, latent dim 1024, optimizer adam, LSTM ....
