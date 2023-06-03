@@ -51,6 +51,7 @@ El cas base a partir del qual es van modificant els valors del paràmetre estudi
 
 Estudi del valor que fa una major accuracy de optimitzar:
 **Optimizer**
+
 Un optimitzador és un algoritme que s'utilitza per ajustar els paràmetres d'un model amb l'objectiu de minimitzar una funció de pèrdua i permeten que els models aprenguin de les dades i millorin el seu rendiment. Alguns optimitzadors poden ser més ràpids que altres en trobar el mínim de la funció de pèrdua. Altres poden ser més robustos als mínims locals o als punts de sella. A més, alguns optimitzadors poden ser més adequats per a certs tipus de problemes o models.
 És per aquesta raó que s’han provat amb 4 valors d’optimitzer diferents: SGD, AdaGrad, RMSProp i Adam.
 
@@ -60,15 +61,18 @@ Un optimitzador és un algoritme que s'utilitza per ajustar els paràmetres d'un
 - Adam: Combina RMSProp i el moment emmagatzemant tant la taxa d'aprenentatge individual de RMSProp com el promig ponderat del moment.
 
 **Learning rate**
+
 El learning rate fa referència al hiperparàmetre que controla l’ajust dels paràmetres del model en resposta a l’error estimat. Determina la mida dels passos en la direcció oposada del gradient durant l’optimització. Un LR alt pot fer que el model convergeixi ràpidament, però també pot fer que salti sobre el mínim i no convergeixi. Una LR baix pot fer que el model convergeixi més lentament, però pot augmentar la precisió de la solució.
 S’ha provat amb valors diferents per a que es mostrés clarament quin era el valor més adequat. Han estat: 0.1, 0.01 i 0.001.
 
 **Drop out**
+
 El dropout és un hiperparàmetre que permet prevenir el sobreajust en el model. Consisteix en desactivar aleatòriament algunes unitats de la xarxa durant l’entrenament. Això fa que la xarxa sigui més robusta i menys propensa a memoritzar les dades de train.
 
 A partir de les gràfiques podem veure que és bastant irregular, però la tendència és que el valor de drop out 0 és el que proporciona un accuracy més elevat, de 0.1 aproximadament i per tant, té una loss més baixa a les èpoques finals, concretamente de 1.04.
 
 **Cell type**
+
 GRU (Gated Recurrent Unit) i LSTM (Long Short-Term Memory) són dos tipus de cel·les recurrents utilitzades en les RNN. Les cèl·lules GRU i LSTM tenen portes que controlen el flux d'informació a través de la cel·la. Això els permet aprendre dependències a llarg termini en les dades. La principal diferència entre aquest dos tipus de cel·les és que les GRU tenen menys portes i són més simples.
 
 Al observar les gràfiques tan d’accuracy com de loss, podem veure com aquestes dues s’inicien al mateix punt però ràpidament es diferencien. Per una banda la GRU (en groc) augmenta ràpidament al llarg de les epochs, mentre que LSTM es manté més constant al llarg de l’entrenament en un valor més baix en accuracy i major en loss.
