@@ -1,3 +1,10 @@
+wandb/
+wandb/run-20230529_172658-8mdgj17l/files/model-best.h5
+log/
+ENCODED.npy
+TARGET.npy
+INPUT.npy
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
