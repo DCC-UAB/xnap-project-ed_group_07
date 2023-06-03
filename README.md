@@ -3,7 +3,12 @@
 ## Introducció i objectius
 Write here a short summary about your project. The text must include a short introduction and the targeted goals
 
-Aquest projecte està enfocat a la creació d'un model de màquina automàtica per a la traducció de diferents llengues com seria passar de l'angñés al català o espanyol. El principal objectiu d'aquest treball es entendre el funcionament i l'estructura interna d'aquest model de màquina automètica per poder fer-ne les modificacions pertinents per arribar a obtenir un millor model, és a dir, que sigui capaç de fer bones traduccions donades unes paraules o frases.
+Aquest projecte està enfocat a la creació d'un model de màquina automàtica per a la traducció de diferents llengues com seria passar de l'anglés al català o espanyol. El principal objectiu d'aquest treball es entendre el funcionament i l'estructura interna d'aquest model de màquina automètica per poder fer-ne les modificacions pertinents per arribar a obtenir un millor model, és a dir, que sigui capaç de fer bones traduccions donades unes paraules o frases.
+
+## Dataloader
+En aquets projecte tractem tant la traducció de l'anglés al català com a l'espanyol. Les dades les tenim en el mateix format, un fitxer on cada linia té la paraula o conjunt de paraules en un idioma (del qual volem la traducció) i després en l'altre (la traducció). 
+
+El primer problema amb el qual ens trobem és la quantitat de les dades. En català tenim  dades les quals son relativament poques. D'altra banda tenim l'arxiu en esanyol que té gairebé 140.000 (139.705)
 
 ## Arquitecura
 
@@ -29,6 +34,10 @@ To run the example code:
 ```
 python main.py
 ```
+## Resultats
+En aquesta primera imatge hem executat el prediction.Translation amb el model creat amb 2 epochs, batch size 128, latent dim 1024, optimizer adam, lSTM ....
+
+<img width="335" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/e0880a9d-2d7b-49ab-8316-f7a81889af89">
 
 
 
