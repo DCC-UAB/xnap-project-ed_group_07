@@ -111,6 +111,9 @@ En aquesta primera imatge hem executat el prediction. Translation amb el model c
 
 <img width="335" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/e0880a9d-2d7b-49ab-8316-f7a81889af89">
 
+
+![image](https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101988669/95c0080d-fceb-4f68-b875-43b69c86a98b)
+
 ## Contributors
 
 Alba Ballarà    1597532@uab.cat
