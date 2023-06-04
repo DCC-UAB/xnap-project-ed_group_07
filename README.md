@@ -18,17 +18,31 @@ D'altra banda tenim l'arxiu en espanyol que té gairebé 140.000 (139.705) però
 Aquesta funció es troba al codi en l'arxiu util.py i es anomenada create_data_loader().
 
 ## Arquitectura
-Tractem amb models sequence to sequence (Seq2seq) que converteixen seqüències d'un domini a un altre, com seria en el nostre cas de l'anglès al català/espanyol. Son combinacions de dos RNN, un fa d'encoder i l'altre de decoder.
+Tractem amb models sequence to sequence (Seq2seq) que converteixen seqüències d'un domini a un altre, com seria en el nostre cas de l'anglès al català/espanyol. Son combinacions de dos RNN, un fa d'encoder i l'altre de decoder. En aquest cas, utilitzem LSTM i GRu, que son dos tipus de RNN
+
+**Model LSTM**
+
+**Model LSTM**
+
+Passem la seqüència d’entrada, que ha estat codificada amb one hot encoding, per l'encoder. Té mida 81, que és el nombre de caràcters diferents de la llengua d'entrada, és a dir, de l'anglès. L’encoder processa la sequencia d’entrada i retorna el seu estat intern. 
+
+L’input del decoder (segona capa lstm) és la seqüència de sortida, amb mida 100 ja que son els caràcters única de la llengua de sortida, el castellà. El decoder s’entrena per predir el següent caràcter de la sequencia target, s’entrena perquè produeixi la mateixa seqüència però un pas més avançcat en el futur, això é sun mètide d'aprenentatge anomenatteac her forcing. Utilitza com a estat inicial els vectors d'estat del encoder, és la manrea de que el decoder obtingui informació sobre què ha de generar. Per tant el decoder apren a generar targets[t+1…] quan li passem target[...t], condicionat per la sequencia d’entrada. 
+
+La ultima capa Dense, es la capa final responsable de mapejar la representacio hidden del decoder a l’espai del vocabulari, éa a dir passa de 256 (latent dim) a 100, mida del vocabulari del target (castellà).
 
 <img width="949" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/1222e4ed-8a40-4d7c-8b51-cabf07a42158">
 
+**Model GRU**
+
+El mateix porcès però amb capes GRU:
+
 <img width="947" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/25f22d54-a99b-44bd-a750-c767ddc0c3f4">
 
-Encoder model inference
+**Encoder model inference GRU**
 
 <img width="597" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/dd0e40a8-3b7b-4d21-8730-986f9bd5b161">
 
-Decoder model inference
+**Decoder model inference GRU**
 
 <img width="738" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/5798be3d-23a5-4a9c-9e5c-87778a3c836e">
 
@@ -70,13 +84,13 @@ A partir de les gràfiques podem veure que és bastant irregular, però la tend�
 
 **Cell type**
 
-GRU (Gated Recurrent Unit) i LSTM (Long Short-Term Memory) són dos tipus de cel·les recurrents utilitzades en les RNN. Les cèl·lules GRU i LSTM tenen portes que controlen el flux d'informació a través de la cel·la. Això els permet aprendre dependències a llarg termini en les dades. La principal diferència entre aquest dos tipus de cel·les és que les GRU tenen menys portes i són més simples.
+GRU (Gated Recurrent Unit) i LSTM (Long Short-Term Memory) són dos tipus de cel·les recurrents utilitzades en les RNN. Les cel·les GRU i LSTM tenen portes que controlen el flux d'informació a través de la cel·la. Això els permet aprendre dependències a llarg termini en les dades. La principal diferència entre aquest dos tipus de cel·les és que les GRU tenen menys portes i són més simples.
 
 Al observar les gràfiques tan d’accuracy com de loss, podem veure com aquestes dues s’inicien al mateix punt però ràpidament es diferencien. Per una banda la GRU (en groc) augmenta ràpidament al llarg de les epochs, mentre que LSTM es manté més constant al llarg de l’entrenament en un valor més baix en accuracy i major en loss.
 
 
 ## Mètriques 
-Respecte a les mètriques com hem dit anteriorment, hem utilitzat l'accuracy per efectuar totes les modificacions de hyperparàmetres, ja que es tracta de una mètrica senzilla i fàcil de veure com de bé funciona el nostre model sense necessitat de aprofundir molt. Aquesta mètrica té els seus inconvenients com seria no tenir en compte el context, la fluidesa o la coherencia de la traducció que es fa. Per això hem implementat també la mètrica BLEU (Bilingual Evaluation Understudy). 
+Respecte a les mètriques com hem dit anteriorment, hem utilitzat l'accuracy per efectuar totes les modificacions de hyperparàmetres, ja que es tracta de una mètrica senzilla i fàcil de veure com de bé funciona el nostre model canviant els hiperparàmetres, sense necessitat de aprofundir molt. Aquesta mètrica té els seus inconvenients com seria no tenir en compte el context, la fluidesa o la coherencia de la traducció que es fa. Per això hem implementat també la mètrica BLEU (Bilingual Evaluation Understudy). 
 
 ## Resultats
 En aquesta primera imatge hem executat el prediction. Translation amb el model creat amb 2 epochs, batch size 128, latent dim 1024, optimizer adam, LSTM ....
