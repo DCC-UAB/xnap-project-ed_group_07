@@ -1,5 +1,5 @@
 wandb/
-wandb/run-20230529_172658-8mdgj17l/files/model-best.h5
+output/
 log/
 ENCODED.npy
 TARGET.npy
