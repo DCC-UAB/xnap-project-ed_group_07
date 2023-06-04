@@ -45,6 +45,7 @@ El mateix porcès però amb capes GRU:
 
 <img width="947" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/25f22d54-a99b-44bd-a750-c767ddc0c3f4">
 
+
 Aquests models són per entrenar amb dades que ja coneix però per per traduir una seqüencia d’entrada desconeguda, hem de fer els model d'inferència. 
 
 **Encoder model inference GRU**
@@ -52,6 +53,7 @@ Aquests models són per entrenar amb dades que ja coneix però per per traduir u
 A l’encoder li passem la sequencia d’entrada (amb la llegua input angles)i genera els estats.
 
 <img width="597" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/dd0e40a8-3b7b-4d21-8730-986f9bd5b161">
+
 
 **Decoder model inference GRU**
 
