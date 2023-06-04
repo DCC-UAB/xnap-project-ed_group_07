@@ -68,7 +68,7 @@ El cas base a partir del qual es van modificant els valors del paràmetre estudi
 - Epochs:25
 - Optimizer: RMSProp
 - Learning rate: 0,0001
-- Dropout
+- Sense Dropout
 - Cell type: LSTM
 
 Estudi del valor que fa una major accuracy de optimitzar:
@@ -107,10 +107,20 @@ Al observar les gràfiques tan d’accuracy com de loss, podem veure com aqueste
 Respecte a les mètriques com hem dit anteriorment, hem utilitzat l'accuracy per efectuar totes les modificacions de hyperparàmetres, ja que es tracta de una mètrica senzilla i fàcil de veure com de bé funciona el nostre model canviant els hiperparàmetres, sense necessitat de aprofundir molt. Aquesta mètrica té els seus inconvenients com seria no tenir en compte el context, la fluidesa o la coherencia de la traducció que es fa. Per això hem implementat també la mètrica BLEU (Bilingual Evaluation Understudy). 
 
 ## Resultats
-En aquesta primera imatge hem executat el prediction. Translation amb el model creat amb 2 epochs, batch size 128, latent dim 1024, optimizer adam, LSTM ....
+
+Podem concloure que els millors hyperparametres que ens ha donat han estat els següents:
+
+- Epochs:75
+- Optimizer: RMSProp
+- Learning rate: 0,0001
+- Sense Dropout
+- Cell type: GRU
+
+En aquesta primera imatge hem executat el predictionTranslation amb el nostre millor model:
 
 <img width="335" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/e0880a9d-2d7b-49ab-8316-f7a81889af89">
 
+Obtenim 
 
 ![image](https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101988669/95c0080d-fceb-4f68-b875-43b69c86a98b)
 
