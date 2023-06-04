@@ -116,20 +116,6 @@ El latent_dim representa el nombre de cel·les de memòria o unitats que hi ha a
 ## Mètriques 
 Respecte a les mètriques com hem dit anteriorment, hem utilitzat l'accuracy per efectuar totes les modificacions de hyperparàmetres, ja que es tracta de una mètrica senzilla i fàcil de veure com de bé funciona el nostre model canviant els hiperparàmetres, sense necessitat de aprofundir molt. Aquesta mètrica té els seus inconvenients com seria no tenir en compte el context, la fluidesa o la coherencia de la traducció que es fa. Per això hem implementat també la mètrica BLEU (Bilingual Evaluation Understudy). 
 
-## Resultats
-
-Podem concloure que els millors hyperparametres que ens ha donat han estat els següents:
-
-- Epochs:75
-- Optimizer: RMSProp
-- Learning rate: 0,0001
-- Sense Dropout
-- Cell type: GRU
-
-En aquesta primera imatge hem executat el predictionTranslation amb el nostre millor model:
-
-<img width="335" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/e0880a9d-2d7b-49ab-8316-f7a81889af89">
-
 Obtenim que de la paraula d'entrada en anglés és 'What?' obtenim en espanyol '¿Quu', la traducció correcte seria '¿Qué?'. No és òptima però per tenir un 0.25 d'accuracy, que és el que ens dona el nostre millor model està força bé.
 Hi ha diferents mètodes objecius:
 - Accuracy: és el més simple i compta les coincidències exactes entre la traducció generada pel model i la de referència. D'aquesta manera proporciona una idea general de com que bé o no prediu el model en comparació a les traduccions que s'utilitzen com a referència. És per això que no té en compte altres aspectes com el context, coherència o fluidesa de les traduccions.
@@ -143,6 +129,19 @@ Hi ha diferents mètodes objecius:
 - BLEU (Bilingual Evaluation Understudy): àmpliament utilitzada per avaluar la qualitat de les traduccions automàtiques en comparació amb una o més traduccions de referència. Mesura la similitud entre la traducció generada i les referències basant-se en la coincidència de paraules o frases. Com més gran sigui el valor de BLEU, millor serà la qualitat de la traducció. BLEU considera la precisió unigram, bigram, trigram i quadrigram, i té en compte la brevetat de les traduccions.
 
 S'ha utilitzat la mètrica accuracy per a fer l'estudi dels hiperparàmetres i del model, però s'ha implementat també la mètrica BLEU score. En aquest cas, el resultat de la mètrica és inferior que al aplicar la mètrica accuracy.
+## Resultats
+
+Podem concloure que els millors hyperparametres que ens ha donat han estat els següents:
+
+- Epochs:75
+- Optimizer: RMSProp
+- Learning rate: 0,0001
+- Sense Dropout
+- Cell type: GRU
+
+En aquesta primera imatge hem executat el predictionTranslation amb el nostre millor model:
+
+<img width="335" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/e0880a9d-2d7b-49ab-8316-f7a81889af89">
 
 ## Conclusions
 
