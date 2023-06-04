@@ -10,43 +10,41 @@ import wandb
 from wandb.keras import WandbCallback
 import random
 import tensorflow as tf
-from keras.utils.vis_utils import plot_model
+from keras.utils.vis_utils import plot_model 
 
 batch_size = 128  # Batch size for training.
+
 epochs = 25  # Number of epochs to train for.
-latent_dim = 1024#256  # Latent dimensionality of the encoding space.
-num_samples =  90000 #145437  # Number of samples to train on.
+
+latent_dim = 256 #1024 
+ # Latent dimensionality of the encoding space.
+ 
+num_samples =  90000 # Number of samples to train on.
+
 # Path to the data txt file on disk.
-#data_path = './cat-eng/cat.txt' # to replace by the actual dataset name
-# el dataset en catala nomes te 1336 linies
-data_path = './spa-eng/spa.txt' #139705
+# './cat-eng/cat.txt' el dataset en catala nomes te 1336 linies
+data_path = './spa-eng/spa.txt' #139705 lines
 encoder_path='encoder_modelPredTranslation.h5'
 decoder_path='decoder_modelPredTranslation.h5'
 validation_split = 0.2
-#LOG_PATH='/home/alumne/projecte/xnap-project-ed_group_07/log' #quan estem en remot
-LOG_PATH='./log' #quan estem en local
-
-validation_split = 0.1
+LOG_PATH='./log' 
 learning_rate = 0.0001
-name = "opt SGD"
-opt = "SGD"
 
-#API
+name = "Execution"
+opt = 'rmsprop' #'adam'
 
-#GRÀFIQUES
 # start a new wandb run to track this script
 config_defaults = {
     "batch_size": batch_size,
     "learning_rate": learning_rate,
-    "architecture": "LSTM",
     "dataset": data_path,
     "epochs": epochs,
     "latent_dim": latent_dim,
-    "cell_type": 'LSTM',
+    "cell_type": 'LSTM', #'GRU'
     "optimizer":  opt,
-    "lstm_layers": 1
+    "lstm_layers": 1, 
+    'dropouts': 0
     }
-
 
 wandb.init(
     # set the wandb project where this run will be logged
@@ -57,91 +55,25 @@ wandb.init(
     allow_val_change=True
 )
 
-sweep_config = {
-  'method': 'random', 
-  #'metric': {
-        #'name': 'accuracy',
-        #'goal': 'maximize'
-      #'name': 'val_loss',
-      #'goal': 'minimize'},
-  'early_terminate':{
-      'type': 'hyperband',
-      'min_iter': 5
-  },
-  'parameters': { 
-      'batch_size': {
-          'values': [16, 128, 256]
-      },
-      'learning_rate':{
-          'values': [0.005, 0.0005, 0.2]
-      },
-      'latent_dim':{
-            'values':[16,256,512]
-  },
-      'cell_type': 
-          {'values': ['LSTM', 'GRU']
-    },   
-      'optimizer': 
-          {'values': ['adam', 'rmsprop']}
-}}
+def prepareData(data_path):
 
-#sweep_id = wandb.sweep(sweep_config,entity="aballara3", project="Translation")
+    input_characters,target_characters,input_texts,target_texts=extractChar(data_path)
 
-
-
-def prepareData(data_path, batch_inici, batch_final):
-
-    input_characters,target_characters,input_texts,target_texts=extractChar(data_path, batch_inici, batch_final)
-    #es bidireccional per tant li passem com a 4 argument True si volem que faci la traduccio al reves
-    
-
-    # with open('./spa-eng/train/source/source.txt', 'w') as f_source:
-    #     with open('./spa-eng/train/target/target.txt', 'w') as f_target:
-    #         for  input, target in zip(input_texts, target_texts):
-    #             f_source.write(input + '\n')
-    #             f_target.write(target + '\n')
-
-
-    # path_loader = './spa-eng/train'
-
-    # dataloader = tf.keras.preprocessing.text_dataset_from_directory(
-    #     path_loader,
-    #     batch_size=batch_size,
-    #     shuffle=True,
-    #     seed=None,
-    #     validation_split=None,
-    #     subset=None,
-    # )
     encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(input_characters,target_characters,input_texts,target_texts)
-    #encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length =encodingChar(dataloader, input_characters, target_characters, input_texts,target_texts)
-    
-    encoder_dataset, decoder_input_dataset, decoder_target_dataset  = create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, wandb.config.batch_size)
+        
+    encoder_dataset, decoder_input_dataset, decoder_target_dataset  = create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data)
     
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,input_texts,target_texts,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length, encoder_dataset, decoder_input_dataset, decoder_target_dataset
 
-def create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data, batch_size):
+def create_data_loader(encoder_input_data, decoder_input_data, decoder_target_data):
     # Create TensorFlow datasets from the encoded data arrays
-    #with tf.device("CPU"):
     encoder_dataset = tf.data.Dataset.from_tensor_slices(encoder_input_data)
     decoder_input_dataset = tf.data.Dataset.from_tensor_slices(decoder_input_data)
     decoder_target_dataset = tf.data.Dataset.from_tensor_slices(decoder_target_data)
         
-    # Combine the datasets into a single dataset
-    
-    #dataset_input = tf.data.Dataset.zip((encoder_dataset, decoder_input_dataset))
-    #dataset_target = tf.data.Dataset.zip((decoder_target_dataset))
-
-    # Shuffle and batch the dataset
-    #dataset = dataset.shuffle(len(encoder_input_data))
-    
-    #dataset_input = dataset_input.batch(batch_size)
-    #dataset_target = dataset_target.batch(batch_size)
-
-    #return dataset_input, dataset_target
     return encoder_dataset, decoder_input_dataset, decoder_target_dataset 
 
-
-def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
+def extractChar(data_path, exchangeLanguage=False):
     # We extract the data (Sentence1 \t Sentence 2) from the anki text file
     input_texts = [] 
     target_texts = []
@@ -151,9 +83,7 @@ def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
 
     if (exchangeLanguage==False):
 
-        for line in lines[: min(num_samples, len(lines) - 1)]: #change
-        #batch_final=min(batch_final, len(lines) - 1)
-        #for line in lines[batch_inici: batch_final]:
+        for line in lines[: min(num_samples, len(lines) - 1)]: 
             input_text, target_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -170,10 +100,6 @@ def extractChar(data_path, batch_inici, batch_final, exchangeLanguage=False):
 
     else:
         for line in lines[: min(num_samples, len(lines) - 1)]:
-        
-        #batch_final=min(batch_final, len(lines) - 1)
-        #for line in lines[batch_inici: batch_final]:
-
             target_text , input_text, _ = line.split('\t')
             target_text = '\t' + target_text + '\n'
             input_texts.append(input_text)
@@ -199,7 +125,6 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
 # 2. We create a dictonary for both language
 # 3. We store their encoding and return them and their respective dictonary
     
-    #if num_encoder_tokens < 
     num_encoder_tokens = len(input_characters) #numero de lletres diferents llengua entrada
     num_decoder_tokens = len(target_characters) #numero de lletres diferents llengua sortida
     max_encoder_seq_length = max([len(txt) for txt in input_texts]) #max len d'una linia entrada
@@ -227,77 +152,17 @@ def encodingChar(input_characters,target_characters,input_texts,target_texts):
                 decoder_target_data[i, t - 1, target_token_index[char]] = 1.
 
     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index,num_encoder_tokens,num_decoder_tokens,num_decoder_tokens,max_encoder_seq_length
-    
-# def encodingChar(dataset, input_characters, target_characters, input_texts,target_texts):
-#     # Extract input and target texts from the dataset
-#     input_texts = []
-#     target_texts = []
-#     for inputs, targets in dataset:
-#         input_texts.extend(inputs)
-#         target_texts.extend(targets)
-    
-#     # Get the number of unique characters in the input and target languages
-#     num_encoder_tokens = len(input_characters)
-#     num_decoder_tokens = len(target_characters)
-    
-#     # Determine the maximum sequence lengths for inputs and outputs
-#     max_encoder_seq_length = max([len(txt) for txt in input_texts])
-#     max_decoder_seq_length = max([len(txt) for txt in target_texts])
-    
-#     print('Number of num_encoder_tokens:', num_encoder_tokens)
-#     print('Number of samples:', len(input_texts))
-#     print('Number of unique input tokens:', num_encoder_tokens)
-#     print('Number of unique output tokens:', num_decoder_tokens)
-#     print('Max sequence length for inputs:', max_encoder_seq_length)
-#     print('Max sequence length for outputs:', max_decoder_seq_length)
-    
-#     # Create dictionaries for encoding characters
-#     input_token_index = dict([(char, i) for i, char in enumerate(input_characters)])
-#     target_token_index = dict([(char, i) for i, char in enumerate(target_characters)])
-    
-#     # Initialize the input, target, and decoder target data arrays
-#     encoder_input_data = np.zeros((len(input_texts), max_encoder_seq_length, num_encoder_tokens), dtype='float32')
-#     decoder_input_data = np.zeros((len(input_texts), max_decoder_seq_length, num_decoder_tokens), dtype='float32')
-#     decoder_target_data = np.zeros((len(input_texts), max_decoder_seq_length, num_decoder_tokens), dtype='float32')
 
-#     for i, (input_text, target_text) in enumerate(zip(input_texts, target_texts)):
-#         for t, char in enumerate(input_text):
-#             encoder_input_data[i, t, input_token_index[char]] = 1.
-#         for t, char in enumerate(target_text):
-#             decoder_input_data[i, t, target_token_index[char]] = 1.
-#             if t > 0:
-#                 decoder_target_data[i, t - 1, target_token_index[char]] = 1.
-
-#     return encoder_input_data, decoder_input_data, decoder_target_data, input_token_index, target_token_index, num_encoder_tokens, num_decoder_tokens, max_encoder_seq_length
-
-
-
-def modelTranslation2(num_encoder_tokens,num_decoder_tokens):
-# We crete the model 1 encoder(gru) + 1 decode (gru) + 1 Dense layer + softmax
-
-    encoder_inputs = Input(shape=(None, num_encoder_tokens))
-    encoder = GRU(wandb.config.latent_dim, return_state=True)
-    encoder_outputs, state_h = encoder(encoder_inputs)
-    encoder_states = state_h
-
-    decoder_inputs = Input(shape=(None, num_decoder_tokens))
-    decoder_gru = GRU(wandb.config.latent_dim, return_sequences=True)
-    decoder_outputs = decoder_gru(decoder_inputs, initial_state=state_h)
-    decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-    decoder_outputs = decoder_dense(decoder_outputs)
-    model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
-    
-    return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_gru,decoder_dense
     
 def modelTranslation(num_encoder_tokens,num_decoder_tokens):
-# We crete the model 1 encoder(lstm) + 1 decode (LSTM) + 1 Dense layer + softmax
+# We crete the model 1 encoder(lstm)/1 encoder(gru) + 1 decode (LSTM)/1 decode (gru) + 1 Dense layer + softmax
 
     if wandb.config.cell_type == 'LSTM':
     
         encoder_inputs = Input(shape=(None, num_encoder_tokens)) 
         # input tensor to the encoder. It has a shape of (None, num_encoder_tokens), where None represents the variable-length 
         # sequence and num_encoder_tokens is the number of tokens in the input lenguage.
-        encoder = LSTM(wandb.config.latent_dim, return_state=True) 
+        encoder = LSTM(wandb.config.latent_dim, return_state=True, dropout=wandb.config.dropouts)
         # latent_dim: Latent dimensionality of the encoding space.
         # encoder LSTM layer is created with latent_dim units
         encoder_outputs, state_h, state_c = encoder(encoder_inputs) 
@@ -307,7 +172,7 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
         # will be used as the initial state for the decoder
         
         decoder_inputs = Input(shape=(None, num_decoder_tokens))
-        decoder_lstm = LSTM(wandb.config.latent_dim, return_sequences=True, return_state=True)
+        decoder_lstm = LSTM(wandb.config.latent_dim, return_sequences=True, return_state=True, dropout=wandb.config.dropouts)
         decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
                                                 initial_state=encoder_states)
 
@@ -316,32 +181,8 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
 
         model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
         
-        plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 
         return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_lstm,decoder_dense
-    
-
-        # encoder_inputs = Input(shape=(None, num_encoder_tokens))
-        
-        # encoder = LSTM(wandb.config.latent_dim, return_sequences=True, return_state=True)
-        # encoder_outputs, state_h, state_c = encoder(encoder_inputs)
-        # encoder_states = [state_h, state_c]
-        
-        # decoder_inputs = Input(shape=(None, num_decoder_tokens))
-        # decoder_lstm_layers = []
-        # decoder_outputs = decoder_inputs
-        
-        # for _ in range(wandb.config.lstm_layers):
-        #     decoder_lstm = LSTM(wandb.config.latent_dim, return_sequences=True, return_state=True)
-        #     decoder_outputs, _, _ = decoder_lstm(decoder_outputs, initial_state=encoder_states)
-        #     decoder_lstm_layers.append(decoder_lstm)
-        
-        # decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-        # decoder_outputs = decoder_dense(decoder_outputs)
-        
-        # model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
-        
-        # return model, decoder_outputs, encoder_inputs, encoder_states, decoder_inputs, decoder_lstm_layers, decoder_dense
 
     
     elif wandb.config.cell_type =='GRU':
@@ -359,29 +200,17 @@ def modelTranslation(num_encoder_tokens,num_decoder_tokens):
     
         return model,decoder_outputs,encoder_inputs,encoder_states,decoder_inputs,decoder_gru,decoder_dense
 
-#def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data, dataloader_encoded_input, dataloader_encoded_target):
 def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_data, encoder_dataset, decoder_input_dataset, decoder_target_dataset):
 # We load tensorboad
 # We train the model
-    LOG_PATH="./log"
+    LOG_PATH="./output/log"
         
     tbCallBack = TensorBoard(log_dir=LOG_PATH, histogram_freq=0, write_graph=True, write_images=True)
+    
     # Run training
-    #PROVAAAAAAAAAAAAAAAAAAAAAAA
-    #CANVIAR 'rmsprop' per adam model.compile(optimizer="Adam", loss="mse", metrics=["mae"]) mse no te sentit
-    #optimizer = tf.keras.optimizers.Adam(wandb.config.learning_rate)
-    #optimizer = 'rmsprop'
 
-    #model.compile(optimizer=optimizer, loss='categorical_crossentropy',metrics=['accuracy'])
     model.compile(optimizer=wandb.config.optimizer, loss='categorical_crossentropy',metrics=['accuracy'])
     #categorical_crossentropy:  loss between the true classes and predicted classes. The labels are given in an one_hot format.
-      
-    # model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
-    #             batch_size=batch_size,
-    #             epochs=epochs,
-    #             validation_split=0.01,
-    #             callbacks = [tbCallBack])
-
 
     train_dataset = tf.data.Dataset.zip((encoder_dataset, decoder_input_dataset))
     train_dataset = tf.data.Dataset.zip((train_dataset,  decoder_target_dataset))
@@ -390,22 +219,19 @@ def trainSeq2Seq(model,encoder_input_data, decoder_input_data,decoder_target_dat
     validation_dataset = train_dataset.take(int(validation_split * len(train_dataset)))
     train_dataset = train_dataset.skip(int(validation_split * len(train_dataset)))
 
-    #history = model.fit(train_dataset, batch_size=batch_size, epochs=epochs, validation_data=validation_dataset, callbacks=[tbCallBack])
     model.fit(train_dataset, batch_size=wandb.config.batch_size, epochs=wandb.config.epochs, validation_data=validation_dataset, callbacks=[WandbCallback()])
-    #history = model.fit(train_dataset, batch_size=wandb.config.batch_size, epochs=wandb.config.epochs, validation_data=validation_dataset, callbacks=[WandbCallback()])
     
-    #Retrieve loss and accuracy from the history object    
-    #loss = history.history['loss']
-    #accuracy = history.history['accuracy']
-    #loss, accuracy = model.evaluate(validation_dataset, callbacks=[tbCallBack])
+    # model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
+    #             batch_size=batch_size,
+    #             epochs=epochs,
+    #             validation_split=0.01,
+    #             callbacks = [tbCallBack])
+    
     
     # Evaluate    
-    loss, accuracy = model.evaluate(validation_dataset, callbacks=[WandbCallback()])
-    wandb.log({'Test Error Rate': round((1-accuracy)*100, 2)}) # wandb.log to track custom metrics
-
-
-    # log metrics to wandb
-    #wandb.log({"accuracy": accuracy, "loss": loss})
+    #loss, accuracy = model.evaluate(validation_dataset, callbacks=[WandbCallback()])
+    loss, acc = model.evaluate(validation_dataset)
+    wandb.log({'evaluate/accuracy': acc})
     
 
 def generateInferenceModel(encoder_inputs, encoder_states,input_token_index,target_token_index,decoder_lstm,decoder_inputs,decoder_dense):
@@ -460,38 +286,68 @@ def loadEncoderDecoderModel():
     decoder_model= load_model(decoder_path)
     return encoder_model,decoder_model
 
-def decode_sequence(input_seq,encoder_model,decoder_model,num_decoder_tokens,target_token_index,reverse_target_char_index):\
+def decode_sequence(input_seq,encoder_model,decoder_model,num_decoder_tokens,target_token_index,reverse_target_char_index):
 # We run the model and predict the translated sentence
+    if wandb.config.cell_type == 'LSTM':
+        # We encode the input
+        states_value = encoder_model.predict(input_seq)
 
-    # We encode the input
-    states_value = encoder_model.predict(input_seq)
-
-    
-    target_seq = np.zeros((1, 1, num_decoder_tokens))
-    
-    target_seq[0, 0, target_token_index['\t']] = 1.
-
-    stop_condition = False
-    decoded_sentence = ''
-    # We predict the output letter by letter 
-    while not stop_condition:
-        output_tokens, h, c = decoder_model.predict(
-            [target_seq] + states_value)
-
-        # We translate the token in hamain language
-        sampled_token_index = np.argmax(output_tokens[0, -1, :])
-        sampled_char = reverse_target_char_index[sampled_token_index]
-        decoded_sentence += sampled_char
-
-        # We check if it is the end of the string
-        if (sampled_char == '\n' or
-           len(decoded_sentence) > 500):
-            stop_condition = True
-
+        
         target_seq = np.zeros((1, 1, num_decoder_tokens))
-        target_seq[0, 0, sampled_token_index] = 1.
+        
+        target_seq[0, 0, target_token_index['\t']] = 1.
 
-        states_value = [h, c]
+        stop_condition = False
+        decoded_sentence = ''
+        # We predict the output letter by letter 
+        while not stop_condition:
+            output_tokens, h, c = decoder_model.predict(
+                [target_seq] + states_value)
+
+            # We translate the token in hamain language
+            sampled_token_index = np.argmax(output_tokens[0, -1, :])
+            sampled_char = reverse_target_char_index[sampled_token_index]
+            decoded_sentence += sampled_char
+
+            # We check if it is the end of the string
+            if (sampled_char == '\n' or
+            len(decoded_sentence) > 500):
+                stop_condition = True
+
+            target_seq = np.zeros((1, 1, num_decoder_tokens))
+            target_seq[0, 0, sampled_token_index] = 1.
+
+            states_value = [h, c]
+            
+    elif wandb.config.cell_type == 'GRU':
+    
+        # We encode the input
+        states_value = encoder_model.predict(input_seq)
+
+        
+        target_seq = np.zeros((1, 1, num_decoder_tokens))
+        
+        target_seq[0, 0, target_token_index['\t']] = 1.
+
+        stop_condition = False
+        decoded_sentence = ''
+        # We predict the output letter by letter 
+        while not stop_condition:
+            output_tokens, states_value = decoder_model.predict(
+                [target_seq] + [states_value])
+
+            # We translate the token in hamain language
+            sampled_token_index = np.argmax(output_tokens[0, -1, :])
+            sampled_char = reverse_target_char_index[sampled_token_index]
+            decoded_sentence += sampled_char
+
+            # We check if it is the end of the string
+            if (sampled_char == '\n' or
+            len(decoded_sentence) > 500):
+                stop_condition = True
+
+            target_seq = np.zeros((1, 1, num_decoder_tokens))
+            target_seq[0, 0, sampled_token_index] = 1.
 
     return decoded_sentence
 
@@ -524,5 +380,9 @@ def getChar2encoding(filename):
     target_token_index = pickle.load(f)
     f.close()
     return input_token_index,max_encoder_seq_length,num_encoder_tokens,reverse_target_char_index,num_decoder_tokens,target_token_index
+
+
+
+
 
 
