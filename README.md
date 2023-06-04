@@ -142,6 +142,11 @@ En aquesta primera imatge hem executat el predictionTranslation amb el nostre mi
 
 <img width="335" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/e0880a9d-2d7b-49ab-8316-f7a81889af89">
 
+Les mètriques resultants d'aquest model són les que es mostren a continuació:
+
+![image](https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101988669/4a4aa3f1-ef87-4a9e-b195-4b1919d5e84f)
+
+
 ## Conclusions
 
 Per concluir, després d'haver tingut diverses dificultats com ha sigut la capacitat de dades a processar alhora, les quals si haguessim pogut n'haguessim agafat més, hi ha millores a fer. Entre d'elles estaria fer més proves d'altres hyperparametres tot i que de primeres no creguessim que son els més òptims i també deixar més epoques a les execucions. Cal dir que tot i haver provat de traduïr d'un idioma a un altre i viceversa podriem haver probat més idiomes.
