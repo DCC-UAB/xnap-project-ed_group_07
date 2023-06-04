@@ -20,7 +20,18 @@ Aquesta funció es troba al codi en l'arxiu util.py i es anomenada create_data_l
 ## Arquitectura
 Tractem amb models sequence to sequence (Seq2seq) que converteixen seqüències d'un domini a un altre, com seria en el nostre cas de l'anglès al català/espanyol. Son combinacions de dos RNN, un fa d'encoder i l'altre de decoder.
 
-<img width="957" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/022233f6-e6a1-42a3-82b4-493447de381d">
+<img width="949" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/1222e4ed-8a40-4d7c-8b51-cabf07a42158">
+
+<img width="947" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/25f22d54-a99b-44bd-a750-c767ddc0c3f4">
+
+Encoder model inference
+
+<img width="597" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/dd0e40a8-3b7b-4d21-8730-986f9bd5b161">
+
+Decoder model inference
+
+<img width="738" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/5798be3d-23a5-4a9c-9e5c-87778a3c836e">
+
 
 
 ## Hiperparàmetres
