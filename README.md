@@ -131,6 +131,18 @@ En aquesta primera imatge hem executat el predictionTranslation amb el nostre mi
 <img width="335" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/e0880a9d-2d7b-49ab-8316-f7a81889af89">
 
 Obtenim que de la paraula d'entrada en anglés és 'What?' obtenim en espanyol '¿Quu', la traducció correcte seria '¿Qué?'. No és òptima però per tenir un 0.25 d'accuracy, que és el que ens dona el nostre millor model està força bé.
+Hi ha diferents mètodes objecius:
+- Accuracy: és el més simple i compta les coincidències exactes entre la traducció generada pel model i la de referència. D'aquesta manera proporciona una idea general de com que bé o no prediu el model en comparació a les traduccions que s'utilitzen com a referència. És per això que no té en compte altres aspectes com el context, coherència o fluidesa de les traduccions.
+
+- WER (Word Error Rate): taxa d'error de paraules, és una mètrica que compara la sortida generada pel sistema de traducció automàtica amb una referència. Es calcula comptant el nombre total de paraules errònies (eliminacions, insercions i n ) i dividint-lo pel nombre total de paraules a la referència. El resultat s'expressa com un percentatge d'errors.
+
+- PER (Position-Independent Word Error Rate): taxa d'error de paraules independent de la posició, és similar al WER però no té en compte la posició específica dels errors. Això significa que es considera un error si una paraula s'omet, s'insereix o es substitueix, sense importar la seva posició a la frase. Es calcula dividint el nombre total d'errors pel nombre total de paraules a la referència.
+
+- mWER (Multi-Reference Word Error Rate): taxa d'error de paraules amb múltiples referències, s'utilitza quan hi ha múltiples traduccions de referència disponibles. En lloc de comparar la sortida del sistema de traducció automàtica amb una sola referència, es compara amb totes les referències disponibles. Es calcula trobant la referència que tingui el menor nombre d'errors i després s'aplica la fórmula del WER a aquesta referència específica.
+
+- BLEU (Bilingual Evaluation Understudy): àmpliament utilitzada per avaluar la qualitat de les traduccions automàtiques en comparació amb una o més traduccions de referència. Mesura la similitud entre la traducció generada i les referències basant-se en la coincidència de paraules o frases. Com més gran sigui el valor de BLEU, millor serà la qualitat de la traducció. BLEU considera la precisió unigram, bigram, trigram i quadrigram, i té en compte la brevetat de les traduccions.
+
+S'ha utilitzat la mètrica accuracy per a fer l'estudi dels hiperparàmetres i del model, però s'ha implementat també la mètrica BLEU score. En aquest cas, el resultat de la mètrica és inferior que al aplicar la mètrica accuracy.
 
 ## Conclusions
 
