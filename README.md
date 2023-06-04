@@ -31,8 +31,6 @@ Tractem amb models sequence to sequence (Seq2seq) que converteixen seqüències 
 
 **Model LSTM**
 
-**Model LSTM**
-
 Passem la seqüència d’entrada, que ha estat codificada amb one hot encoding, per l'encoder. Té mida 81, que és el nombre de caràcters diferents de la llengua d'entrada, és a dir, de l'anglès. L’encoder processa la sequencia d’entrada i retorna el seu estat intern. 
 
 L’input del decoder (segona capa lstm) és la seqüència de sortida, amb mida 100 ja que son els caràcters única de la llengua de sortida, el castellà. El decoder s’entrena per predir el següent caràcter de la sequencia target, s’entrena perquè produeixi la mateixa seqüència però un pas més avançcat en el futur, això é sun mètide d'aprenentatge anomenatteac her forcing. Utilitza com a estat inicial els vectors d'estat del encoder, és la manrea de que el decoder obtingui informació sobre què ha de generar. Per tant el decoder apren a generar targets[t+1…] quan li passem target[...t], condicionat per la sequencia d’entrada. 
@@ -47,14 +45,19 @@ El mateix porcès però amb capes GRU:
 
 <img width="947" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/25f22d54-a99b-44bd-a750-c767ddc0c3f4">
 
+Aquests models són per entrenar amb dades que ja coneix però per per traduir una seqüencia d’entrada desconeguda, hem de fer els model d'inferència. 
+
 **Encoder model inference GRU**
+
+A l’encoder li passem la sequencia d’entrada (amb la llegua input angles)i genera els estats.
 
 <img width="597" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/dd0e40a8-3b7b-4d21-8730-986f9bd5b161">
 
 **Decoder model inference GRU**
 
-<img width="738" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/5798be3d-23a5-4a9c-9e5c-87778a3c836e">
+Al decoder li passem els vectors d’estats i la sequencia de target per tant amb dimensio 100, perque predueixi prediccions pel següent caràcter i despres agafem el que tingui maxima prediccio. Afegim el caracter triat a la seqüència de sortida i repetim el proces fins que el caràcter predit és un caràcter especial que marca final de seqüencia. 
 
+<img width="738" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/5798be3d-23a5-4a9c-9e5c-87778a3c836e">
 
 
 ## Hiperparàmetres
