@@ -106,6 +106,7 @@ GRU (Gated Recurrent Unit) i LSTM (Long Short-Term Memory) són dos tipus de cel
 Al observar les gràfiques tan d’accuracy com de loss, podem veure com aquestes dues s’inicien al mateix punt però ràpidament es diferencien. Per una banda la GRU (en groc) augmenta ràpidament al llarg de les epochs, mentre que LSTM es manté més constant al llarg de l’entrenament en un valor més baix en accuracy i major en loss.
 
 **Latent dimension**
+
 El latent_dim representa el nombre de cel·les de memòria o unitats que hi ha a la capa LSTM o GRU. Cada una d'aquestes cel·les rete informació amb el temps i interactúa amb alteres cel·les de memoria. Hem provat 3 valors diferents 128, 256 i 1024. En la gràfica observem que el millor resiltat  es obtingut pel 256. Això ho explica el fet de que tant el 128 com el 1024 poden crear una tendencia a undedrfitting i overfitting respectivament. Un agafant massa poca informació i tornant-se així més simple i l'altre per la contra agafant massa informació i fent-se més complex. 
 
 ![image](https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/faa43c7a-e2d5-4e3b-ac50-8ebd741ecff1)
