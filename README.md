@@ -44,6 +44,7 @@ El cas base a partir del qual es van modificant els valors del paràmetre estudi
 - Cell type: LSTM
 
 Estudi del valor que fa una major accuracy de optimitzar:
+
 **Optimizer**
 
 Un optimitzador és un algoritme que s'utilitza per ajustar els paràmetres d'un model amb l'objectiu de minimitzar una funció de pèrdua i permeten que els models aprenguin de les dades i millorin el seu rendiment. Alguns optimitzadors poden ser més ràpids que altres en trobar el mínim de la funció de pèrdua. Altres poden ser més robustos als mínims locals o als punts de sella. A més, alguns optimitzadors poden ser més adequats per a certs tipus de problemes o models.
