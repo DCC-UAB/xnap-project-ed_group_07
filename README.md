@@ -20,6 +20,9 @@ Aquesta funció es troba al codi en l'arxiu util.py i es anomenada create_data_l
 ## Arquitectura
 Tractem amb models sequence to sequence (Seq2seq) que converteixen seqüències d'un domini a un altre, com seria en el nostre cas de l'anglès al català/espanyol. Son combinacions de dos RNN, un fa d'encoder i l'altre de decoder.
 
+<img width="957" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/022233f6-e6a1-42a3-82b4-493447de381d">
+
+
 ## Hiperparàmetres
 Per a poder comprovar quins hiperparàmetres són els òptims per al model, s’ha estudiat a partir de l’accuracy i la loss, tant del train com del validation, diferents valors per als paràmetres que es mostren a continuació.
 El cas base a partir del qual es van modificant els valors del paràmetre estudiat són els que s’ha trobat que són més adients a la teoria. Són per tant:
