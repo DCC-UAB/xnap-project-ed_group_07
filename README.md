@@ -11,8 +11,8 @@ L'arxiu principal que crea el model és el training.py. En aquest arxiu s'import
 ## How to use it
 
 1. Descarrega el training dataset:
-  Anglès - Castellà: carpeta spa-eng
-  Anglès - Català: carpeta cat-eng
+  Anglès - Castellà: carpeta spa-eng/
+  Anglès - Català: carpeta cat-eng/
   [Altres idiomes] (http://www.manythings.org/anki/)
  2. `python3 training.py`
  3. `python3 predictionTranslation.py`
@@ -27,7 +27,7 @@ D'altra banda, tenim l'arxiu en espanyol que té gairebé 140.000 (139.705) per�
 Aquesta funció es troba al codi en l'arxiu util.py i s'anomena create_data_loader().
 
 ## Arquitectura
-Tractem amb models sequence to sequence (Seq2seq) que converteixen seqüències d'un domini a un altre, com seria en el nostre cas de l'anglès al català/espanyol. Són combinacions de dos RNN, un fa d'encoder i l'altre de decoder. En aquest cas, utilitzem LSTM i GRu, que son dos tipus de RNN.
+Tractem amb models sequence to sequence (Seq2seq) que converteixen seqüències d'un domini a un altre, com seria en el nostre cas de l'anglès al català/espanyol. Són combinacions de dos RNN, un fa d'encoder i l'altre de decoder. En aquest cas, utilitzem LSTM i GRu, que son dos tipus de RNN. En la carpeta H5 d'aquest repositori trobem l'encoder i el decoder
 
 **Model LSTM**
 
