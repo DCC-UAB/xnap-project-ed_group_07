@@ -97,8 +97,6 @@ El dropout és un hiperparàmetre que permet prevenir el sobreajust en el model.
 
 A partir de les gràfiques podem veure que és bastant irregular, però la tendència és que el valor de drop out 0 és el que proporciona un accuracy més elevat, de 0.1 aproximadament i per tant, té una loss més baixa a les èpoques finals, concretamente de 1.04.
 
-<img width="595" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/3703f3e7-646e-4371-8797-0eebd2578c3f">
-
 <img width="557" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/264d3c30-a1bd-42a8-a5e8-2bba5ed6b798">
 
 **Cell type**
