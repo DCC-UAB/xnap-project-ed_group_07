@@ -8,6 +8,15 @@ Aquest projecte està enfocat a la creació d'un model de màquina automàtica p
 El nostre projecte ha agafat com a punt de partida el codi donat el qual es tractava de 3 arxius principals: el training.py, el util.py i el predictionTranslation.py.
 L'arxiu principal que crea el model es el training.py. En aquest arxiu s’importa tota la informació de l'arxiu util.py, definim principalment algunes de les variables que volem que tingui el nostre model i també és on creem i entrenem el nostre model. En útil.py é son tenim la majoria de funcions i també definim variables com serien el learning rate, l’optimizer o latent dimensión que anirem editant per tal de aconseguir un millor resultat. Per últim, en l’arxiu predictionTranslation.py és on a partir del model creat i d’una paraula o frase en fem la predicció de la seva traducción.
 
+## How to use it
+
+1. Descarrega el training dataset:
+  Anglès - Castellà: carpeta spa-eng
+  Anglès - Català: carpeta cat-eng
+  [Altres idiomes] (http://www.manythings.org/anki/)
+ 2. `python3 training.py`
+ 3. `python3 predictionTranslation.py`
+
 ## Dataloader
 En aquets projecte tractem principalement la traducció de l'anglès a l'espanyol, tot i que també provem la traducció a altres idiomes com el català. Les dades les tenim en el mateix format, un fitxer per parella d'idiomes on cada línia té la paraula o conjunt de paraules en un idioma (del qual volem la traducció) i després en l'altre (la traducció). 
 
