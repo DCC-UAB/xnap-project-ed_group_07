@@ -144,7 +144,7 @@ En aquesta primera imatge hem executat el predictionTranslation amb el nostre mi
 
 ## Conclusions
 
-Per concluir, després d'haver tingut diverses dificultats com ha sigut la capacitat de dades a processar alhora, les quals si haguessim pogut n'haguessim agafat més, hi ha millores a fer. Entre d'elles estaria fer més proves d'altres hyperparametres tot i que de primeres no creguessim que son els més òptims i també deixar més epoques a les execucions. Cal dir que tot i haver provat de traduïr d'un idioma a un altre i biceversa podriem haver probat més idiomes.
+Per concluir, després d'haver tingut diverses dificultats com ha sigut la capacitat de dades a processar alhora, les quals si haguessim pogut n'haguessim agafat més, hi ha millores a fer. Entre d'elles estaria fer més proves d'altres hyperparametres tot i que de primeres no creguessim que son els més òptims i també deixar més epoques a les execucions. Cal dir que tot i haver provat de traduïr d'un idioma a un altre i viceversa podriem haver probat més idiomes.
 
 ## Contributors
 
