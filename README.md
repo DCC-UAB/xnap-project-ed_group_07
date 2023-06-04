@@ -89,6 +89,7 @@ Un optimitzador és un algoritme que s'utilitza per ajustar els paràmetres d'un
 
 El learning rate fa referència al hiperparàmetre que controla l’ajust dels paràmetres del model en resposta a l’error estimat. Determina la mida dels passos en la direcció oposada del gradient durant l’optimització. Un LR alt pot fer que el model convergeixi ràpidament, però també pot fer que salti sobre el mínim i no convergeixi. Una LR baix pot fer que el model convergeixi més lentament, però pot augmentar la precisió de la solució.
 S’ha provat amb valors diferents per a que es mostrés clarament quin era el valor més adequat. Han estat: 0.1, 0.01 i 0.001.
+<img width="547" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/af0b3e69-871e-466d-a3ec-9db7578a5aec">
 
 **Drop out**
 
@@ -96,11 +97,20 @@ El dropout és un hiperparàmetre que permet prevenir el sobreajust en el model.
 
 A partir de les gràfiques podem veure que és bastant irregular, però la tendència és que el valor de drop out 0 és el que proporciona un accuracy més elevat, de 0.1 aproximadament i per tant, té una loss més baixa a les èpoques finals, concretamente de 1.04.
 
+<img width="595" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/3703f3e7-646e-4371-8797-0eebd2578c3f">
+
+<img width="557" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/264d3c30-a1bd-42a8-a5e8-2bba5ed6b798">
+
 **Cell type**
 
 GRU (Gated Recurrent Unit) i LSTM (Long Short-Term Memory) són dos tipus de cel·les recurrents utilitzades en les RNN. Les cel·les GRU i LSTM tenen portes que controlen el flux d'informació a través de la cel·la. Això els permet aprendre dependències a llarg termini en les dades. La principal diferència entre aquest dos tipus de cel·les és que les GRU tenen menys portes i són més simples.
 
 Al observar les gràfiques tan d’accuracy com de loss, podem veure com aquestes dues s’inicien al mateix punt però ràpidament es diferencien. Per una banda la GRU (en groc) augmenta ràpidament al llarg de les epochs, mentre que LSTM es manté més constant al llarg de l’entrenament en un valor més baix en accuracy i major en loss.
+
+**Latent dimension**
+El latent_dim representa el nombre de cel·les de memòria o unitats que hi ha a la capa LSTM o GRU. Cada una d'aquestes cel·les rete informació amb el temps i interactúa amb alteres cel·les de memoria. Hem provat 3 valors diferents 128, 256 i 1024. En la gràfica observem que el millor resiltat  es obtingut pel 256. Això ho explica el fet de que tant el 128 com el 1024 poden crear una tendencia a undedrfitting i overfitting respectivament. Un agafant massa poca informació i tornant-se així més simple i l'altre per la contra agafant massa informació i fent-se més complex. 
+
+![image](https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/faa43c7a-e2d5-4e3b-ac50-8ebd741ecff1)
 
 
 ## Mètriques 
@@ -120,9 +130,11 @@ En aquesta primera imatge hem executat el predictionTranslation amb el nostre mi
 
 <img width="335" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101715910/e0880a9d-2d7b-49ab-8316-f7a81889af89">
 
-Obtenim 
+Obtenim que de la paraula d'entrada en anglés és 'What?' obtenim en espanyol '¿Quu', la traducció correcte seria '¿Qué?'. No és òptima però per tenir un 0.25 d'accuracy, que és el que ens dona el nostre millor model està força bé.
 
-![image](https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101988669/95c0080d-fceb-4f68-b875-43b69c86a98b)
+## Conclusions
+
+Per concluir, després d'haver tingut diverses dificultats com ha sigut la capacitat de dades a processar alhora, les quals si haguessim pogut n'haguessim agafat més, hi ha millores a fer. Entre d'elles estaria fer més proves d'altres hyperparametres tot i que de primeres no creguessim que son els més òptims i també deixar més epoques a les execucions. Cal dir que tot i haver provat de traduïr d'un idioma a un altre i biceversa podriem haver probat més idiomes.
 
 ## Contributors
 
