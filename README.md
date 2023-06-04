@@ -35,7 +35,7 @@ Passem la seqüència d’entrada, que ha estat codificada amb one hot encoding,
 
 L’input del decoder (segona capa lstm) és la seqüència de sortida, amb mida 100 ja que son els caràcters única de la llengua de sortida, el castellà. El decoder s’entrena per predir el següent caràcter de la sequencia target, s’entrena perquè produeixi la mateixa seqüència però un pas més avançcat en el futur, això é sun mètide d'aprenentatge anomenatteac her forcing. Utilitza com a estat inicial els vectors d'estat del encoder, és la manrea de que el decoder obtingui informació sobre què ha de generar. Per tant el decoder apren a generar targets[t+1…] quan li passem target[...t], condicionat per la sequencia d’entrada. 
 
-La ultima capa Dense, es la capa final responsable de mapejar la representacio hidden del decoder a l’espai del vocabulari, éa a dir passa de 256 (latent dim) a 100, mida del vocabulari del target (castellà).
+La ultima capa Dense, es la capa final responsable de mapejar la representacio hidden del decoder a l’espai del vocabulari, éa a dir passa de 256 (latent dim) a 100, mida del vocabulari del target (castellà). 
 
 <img width="949" alt="image" src="https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101924249/1222e4ed-8a40-4d7c-8b51-cabf07a42158">
 
@@ -128,6 +128,7 @@ Hi ha diferents mètodes objecius:
 - BLEU (Bilingual Evaluation Understudy): àmpliament utilitzada per avaluar la qualitat de les traduccions automàtiques en comparació amb una o més traduccions de referència. Mesura la similitud entre la traducció generada i les referències basant-se en la coincidència de paraules o frases. Com més gran sigui el valor de BLEU, millor serà la qualitat de la traducció. BLEU considera la precisió unigram, bigram, trigram i quadrigram, i té en compte la brevetat de les traduccions.
 
 S'ha utilitzat la mètrica accuracy per a fer l'estudi dels hiperparàmetres i del model, però s'ha implementat també la mètrica BLEU score. En aquest cas, el resultat de la mètrica és inferior que al aplicar la mètrica accuracy.
+
 ## Resultats
 
 Podem concloure que els millors hyperparametres que ens ha donat han estat els següents:
@@ -146,7 +147,7 @@ Les mètriques resultants d'aquest model són les que es mostren a continuació:
 
 ![image](https://github.com/DCC-UAB/xnap-project-ed_group_07/assets/101988669/4a4aa3f1-ef87-4a9e-b195-4b1919d5e84f)
 
-
+Podem veure com al executar més èpoques amb els paràmetres que donen un resultat més òptim prèviament, el resultat tant de la mètrica accuracy com loss milloren i per tant, arriba a un valor de 0.25 i 0.4 a l'entrenament i 0.12 i 0.37 respectivament a la validació.
 ## Conclusions
 
 Per concluir, després d'haver tingut diverses dificultats com ha sigut la capacitat de dades a processar alhora, les quals si haguessim pogut n'haguessim agafat més, hi ha millores a fer. Entre d'elles estaria fer més proves d'altres hyperparametres tot i que de primeres no creguessim que son els més òptims i també deixar més epoques a les execucions. Cal dir que tot i haver provat de traduïr d'un idioma a un altre i viceversa podriem haver probat més idiomes.
